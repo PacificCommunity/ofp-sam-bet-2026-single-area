@@ -1,6 +1,6 @@
 # 01 Single-Area
 
-Single-area BET model imported from the provided single-area BET input bundle.
+Single-area BET model from the curated BET input set.
 
 ## Snapshot
 
@@ -13,10 +13,9 @@ Single-area BET model imported from the provided single-area BET input bundle.
 
 ## Notes
 
-The source archive contains both input files and previous fitted outputs. This
-repo tracks only the files needed to rerun the model from `00.par`. The existing
-fitted output folder `69-01-01-00/`, generated reports, Hessian files, fit
-files, and later `.par` files are excluded from version control.
+This repo tracks only the files needed to rerun the model from `00.par`. The
+existing fitted output folder `69-01-01-00/`, generated reports, Hessian files,
+fit files, and later `.par` files are excluded from version control.
 
 `doitall.sh` uses `${PROGRAM_PATH:-mfclo64}` for every MFCL call. Kflow sets
 `PROGRAM_PATH=/home/mfcl/mfclo64` through the runner, while local direct runs can

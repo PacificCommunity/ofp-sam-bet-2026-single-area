@@ -89,7 +89,7 @@ help:
 	  '' \
 	  'BET_PHASE10_11_CONVERGENCE=-3 is the quick default for PHASE 10/11. Set -5 for strict runs.' \
 	  '' \
-	  'After a successful run, final .par files are archived under outputs/models/<step>/final.par.' \
+	  'After a successful run, final .par files are written under outputs/models/<step>/final.par.' \
 	  'Use RUN_MODE=job_par with PAR_SOURCE_JOB and KFLOW_INPUT_JOBS set to the previous same-step job number.' \
 	  '' \
 	  'Common overrides: STEP_SELECT, RUN_MODE, INPUT_PAR, MFCL_LIVE_LOG, TRIGGER_NEXT, OUTPUT_DIR.'

@@ -270,6 +270,10 @@ is_job_par_mode <- function(run_mode) {
   run_mode %in% c("job_par", "previous_job_par", "input_job_par", "kflow_job_par")
 }
 
+is_smoke_bundle_mode <- function(run_mode) {
+  mode_key(run_mode) %in% c("smoke", "smoke_bundle", "payload_smoke", "smoke_payload")
+}
+
 truthy <- function(x, default = TRUE) {
   if (is.null(x) || !length(x) || !nzchar(as.character(x[[1]]))) return(default)
   tolower(trimws(as.character(x[[1]]))) %in% c("1", "true", "yes", "y", "on")
@@ -656,6 +660,73 @@ build_payload <- function(model_dir, step_id) {
   validate_payload_file(paste(attempts, collapse = " | "))
 }
 
+build_smoke_payload <- function(model_dir, step_id, final_par, frq, label = step_id) {
+  payload_file <- file.path(model_dir, "model_payload.rds")
+  par_bytes <- readBin(final_par, "raw", n = file.info(final_par)$size)
+  compressed_par <- memCompress(par_bytes, type = "gzip")
+  created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  payload <- list(
+    schema = "ofp-sam.smoke_model_payload.v1",
+    obj_fun = NA_real_,
+    max_grad = NA_real_,
+    artifacts = list(
+      files = list(
+        par = list(
+          path = basename(final_par),
+          bytes = compressed_par,
+          compression = "gzip",
+          size = length(par_bytes)
+        )
+      )
+    ),
+    data = list(
+      info = list(
+        schema = "ofp-sam.smoke_model_payload.v1",
+        created_at = created_at,
+        step_id = step_id,
+        model_label = label,
+        model_token = label,
+        frq = basename(frq),
+        final_par = basename(final_par),
+        smoke = TRUE
+      )
+    )
+  )
+  saveRDS(payload, payload_file, compress = "xz")
+
+  manifest <- data.frame(
+    schema = "mfclshiny.model_payload_manifest.v1",
+    created_at = created_at,
+    model_label = label,
+    model_folder = normalizePath(model_dir, winslash = "/", mustWork = FALSE),
+    payload_file = normalizePath(payload_file, winslash = "/", mustWork = FALSE),
+    payload_bytes = suppressWarnings(as.numeric(file.info(payload_file)$size)),
+    obj_fun = NA_real_,
+    max_grad = NA_real_,
+    has_par = TRUE,
+    has_rep = FALSE,
+    has_lf = FALSE,
+    has_wf = FALSE,
+    has_tags = FALSE,
+    has_caal = FALSE,
+    has_diagnostics = FALSE,
+    smoke = TRUE,
+    stringsAsFactors = FALSE
+  )
+  write.csv(manifest, file.path(model_dir, "model_payload_manifest.csv"), row.names = FALSE)
+  if (requireNamespace("jsonlite", quietly = TRUE)) {
+    jsonlite::write_json(
+      manifest,
+      file.path(model_dir, "model_payload_manifest.json"),
+      dataframe = "rows",
+      auto_unbox = TRUE,
+      pretty = TRUE,
+      null = "null"
+    )
+  }
+  "smoke model_payload.rds"
+}
+
 root <- getwd()
 out_dir <- env("OUTPUT_DIR", "outputs")
 work_dir <- file.path(root, "work")
@@ -799,6 +870,9 @@ for (i in seq_len(nrow(step_table))) {
   run_mode <- mode_key(cfg$RUN_MODE %||% "last_par")
   input_par <- cfg$INPUT_PAR %||% "latest"
   output_par <- cfg$OUTPUT_PAR %||% ""
+  if (is_smoke_bundle_mode(run_mode) && !nzchar(input_par)) {
+    input_par <- "00.par"
+  }
   requested_run_mode <- run_mode
   requested_input_par <- input_par
   par_source_job <- cfg$PAR_SOURCE_JOB %||% env("STEPWISE_PAR_SOURCE_JOB", "")
@@ -871,7 +945,20 @@ for (i in seq_len(nrow(step_table))) {
   old <- setwd(model_dir)
   model_run_started_at <- Sys.time()
   status <- tryCatch({
-    if (is_doitall_mode(run_mode)) {
+    if (is_smoke_bundle_mode(run_mode)) {
+      if (!nzchar(output_par)) output_par <- "final.par"
+      message("  input:  ", frq, " + ", input_par)
+      message("  output: ", output_par)
+      if (!file.exists(input_par)) stop("Smoke bundle input par not found: ", input_par, call. = FALSE)
+      ok <- file.copy(input_par, output_par, overwrite = TRUE, copy.date = TRUE)
+      if (!isTRUE(ok)) stop("Could not create smoke bundle par: ", output_par, call. = FALSE)
+      writeLines(c(
+        "MFCL execution skipped by RUN_MODE=smoke_bundle.",
+        paste("Input par:", input_par),
+        paste("Output par:", output_par)
+      ), log_file)
+      0L
+    } else if (is_doitall_mode(run_mode)) {
       message("  script: ", run_script_name)
       run_script(file.path(model_dir, run_script_name), program = step_program, log_file = log_file, live_log = mfcl_live_log)
     } else {
@@ -923,7 +1010,11 @@ for (i in seq_len(nrow(step_table))) {
   }
 
   footer <- par_footer(final_par)
-  if (isTRUE(build_payloads)) {
+  if (is_smoke_bundle_mode(run_mode)) {
+    message("  building smoke model_payload.rds")
+    payload_status <- build_smoke_payload(model_dir, step_id, final_par, file.path(model_dir, frq), label = display_label)
+    message("  payload: ", payload_status)
+  } else if (isTRUE(build_payloads)) {
     message("  building model_payload.rds")
     payload_status <- build_payload(model_dir, step_id)
     message("  payload: ", payload_status)

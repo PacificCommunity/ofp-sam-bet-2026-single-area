@@ -12,7 +12,7 @@ compact-output pattern as the BET 2026 stepwise workflow.
 
 | Model | What it is | Source |
 | --- | --- | --- |
-| `01-SingleArea` | Single-area BET model run from `00.par` through `09.par` using `doitall.sh`. | Provided single-area BET input bundle. |
+| `01-SingleArea` | Single-area BET model run from `00.par` through `09.par` using `doitall.sh`. | Curated single-area BET input set. |
 
 ## Included Inputs
 
@@ -23,11 +23,11 @@ compact-output pattern as the BET 2026 stepwise workflow.
 | `bet.ini` | Source ini retained for provenance; the current script starts from `00.par`. |
 | `bet.age_length` | Age-length input used by the model. |
 | `doitall.sh` | Native MFCL run script ending at `09.par`; MFCL calls use `PROGRAM_PATH` and final convergence uses `BET_PHASE10_11_CONVERGENCE`, default `-3`. |
-| `mfcl.cfg`, `labels.tmp`, `index.txt` | Supporting model files from the source archive. |
+| `mfcl.cfg`, `labels.tmp`, `index.txt` | Supporting model files for the single-area run. |
 
-Large fitted outputs from the source bundle, including `69-01-01-00/`, reports,
-Hessian files, fit files, and generated `.par` chains after `00.par`, are
-intentionally not tracked here.
+Large fitted outputs, including `69-01-01-00/`, reports, Hessian files, fit
+files, and generated `.par` chains after `00.par`, are intentionally not
+tracked here.
 
 ## Kflow
 
@@ -44,6 +44,12 @@ Default launch settings:
 | CPUs | `2` |
 | Memory | `8GB` |
 | Final par | `09.par` |
+
+For fast structural Kflow tests, set `RUN_MODE=smoke_bundle`,
+`INPUT_PAR=00.par`, and `OUTPUT_PAR=final.par`. That mode skips MFCL, copies
+the input par to the output par, and writes a compact payload so downstream
+diagnostic tasks can validate their attach/merge flow without running a full
+fit.
 
 Useful commands:
 

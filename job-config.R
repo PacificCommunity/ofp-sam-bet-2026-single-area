@@ -13,7 +13,7 @@ stepwise_models <- data.frame(
   enabled = TRUE,
   major_step = "01-SingleArea",
   substep = "01a",
-  change_axis = "single-area BET model from provided input bundle",
+  change_axis = "single-area BET model from curated input set",
   model_label = "Single-area",
   job_title = "01 Single-area",
   job_key = "01-single-area",
