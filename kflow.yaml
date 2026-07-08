@@ -40,7 +40,7 @@ env:
   # changing STEP_SELECT, update these fields too if the job list should show
   # the selected model label before the run starts.
   JOB_TITLE: "01 Single-area checkpoint"
-  JOB_DESCRIPTION: "Package the fitted BET 2026 single-area checkpoint and save compact plot-ready payloads."
+  JOB_DESCRIPTION: "Run the fitted BET 2026 single-area checkpoint briefly and save compact plot-ready payloads."
   MODEL_LABEL: "Single-area checkpoint"
   JOB_KEY: 01-single-area-checkpoint
   FLOW_GROUP: bet-2026-single-area
@@ -53,7 +53,7 @@ env:
   REPORT_FILE_STEM: bet-2026-report
   STEPWISE_BUILD_PAYLOAD: "true"
   STEPWISE_SAVE_RAW_MFCL_INPUTS: "true"
-  RUN_MODE: smoke_bundle
+  RUN_MODE: single_par
   INPUT_PAR: 09.par
   PAR_SOURCE_JOB: ""
   STEPWISE_PAR_SOURCE_DIR: ""
@@ -68,6 +68,8 @@ env:
   STEPWISE_PUSH_FINAL_PARS: "false"
   STEPWISE_PUBLISH_REQUIRED: "false"
   STEPWISE_SINGLE_PAR_REPORT: "true"
+  STEPWISE_SINGLE_PAR_ITERATIONS: "1"
+  STEPWISE_SINGLE_PAR_CONVERGENCE: "-3"
 
   # true streams the full MFCL output to Kflow logs. false keeps logs quieter.
   MFCL_LIVE_LOG: "true"
@@ -91,7 +93,7 @@ env:
   KFLOW_REPORT_PUBLISH_REQUIRED: "true"
 
 # Keep artifacts compact. The runner writes only model_payload.rds, final .par,
-# and small index CSVs under outputs/.
+# generated MFCL reports/fits needed by the payload, and small index CSVs under outputs/.
 output_patterns:
   - outputs/**
 
@@ -505,6 +507,8 @@ job_config:
     - STEPWISE_PUSH_FINAL_PARS
     - STEPWISE_PUBLISH_REQUIRED
     - STEPWISE_SINGLE_PAR_REPORT
+    - STEPWISE_SINGLE_PAR_ITERATIONS
+    - STEPWISE_SINGLE_PAR_CONVERGENCE
     - PROGRAM_PATH
     - MFCL_LIVE_LOG
     - BET_PHASE10_11_CONVERGENCE

@@ -327,11 +327,23 @@ bind_rows_fill <- function(rows) {
   do.call(rbind, rows)
 }
 
-smoke_switch_args <- function(iterations = 1L) {
+smoke_switch_args <- function(iterations = NULL, convergence = NULL) {
+  iterations <- iterations %||% env("STEPWISE_SINGLE_PAR_ITERATIONS", "1")
+  iterations <- suppressWarnings(as.integer(iterations[[1L]]))
+  if (!length(iterations) || is.na(iterations) || iterations < 0L) {
+    iterations <- 1L
+  }
+  convergence <- convergence %||%
+    env("STEPWISE_SINGLE_PAR_CONVERGENCE", env("BET_PHASE10_11_CONVERGENCE", "-3"))
+  convergence <- suppressWarnings(as.numeric(convergence[[1L]]))
+  if (!length(convergence) || is.na(convergence)) {
+    convergence <- -3
+  }
   report <- truthy(env("STEPWISE_SINGLE_PAR_REPORT", "true"), TRUE)
   report_flag <- as.integer(isTRUE(report))
   switches <- c(
     1, 1, as.integer(iterations),
+    1, 50, convergence,
     1, 189, report_flag,
     1, 190, report_flag,
     1, 188, report_flag,
