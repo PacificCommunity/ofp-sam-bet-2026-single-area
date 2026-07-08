@@ -1,0 +1,538 @@
+# Kflow task defaults for the BET 2026 single-area model runner.
+#
+# This file describes how Kflow should run the repo. Most model-specific edits
+# belong in job-config.R; this file is for Docker, resources, default env,
+# saved outputs, and automatic follow-up tasks.
+
+# Stable task id shown in Kflow and used by the API:
+#   /api/job/ofp-sam-bet-2026-single-area
+name: ofp-sam-bet-2026-single-area
+description: Run the BET 2026 single-area MFCL model folder.
+
+# Command executed inside the Docker container after checkout.
+command: bash run.sh
+
+# Use the tagged tuna-flow image so local/Kflow runs do not drift unexpectedly.
+# Change deliberately, for example:
+#   ghcr.io/pacificcommunity/tuna-flow:v2.0
+#   ghcr.io/pacificcommunity/tuna-flow:latest
+docker_image: ghcr.io/pacificcommunity/tuna-flow:v2.1
+
+# HTCondor resource request. Increase memory/disk before increasing CPUs unless
+# the MFCL command itself can use more threads.
+resources:
+  cpus: 2
+  memory: 8GB
+  disk: 8GB
+
+# Default is intentionally empty. Add machines only for a temporary launch or
+# let Kflow's scheduler-health auto-exclude handle currently bad nodes.
+exclude_machines: []
+exclude_slots: []
+
+env:
+  # Default selected model folder. Override per job in the Kflow job config.
+  # This repo has one model, so `all` and `01-SingleArea` are equivalent.
+  STEP_SELECT: all
+
+  # Default Kflow display labels for the default model. `make kflow` computes
+  # these from job-config.R. When launching directly from the Kflow UI and
+  # changing STEP_SELECT, update these fields too if the job list should show
+  # the selected model label before the run starts.
+  JOB_TITLE: "01 Single-area"
+  JOB_DESCRIPTION: "Run the BET 2026 single-area model and save compact plot-ready payloads."
+  MODEL_LABEL: "Single-area"
+  JOB_KEY: 01-single-area
+  FLOW_GROUP: bet-2026-single-area
+  FLOW_SPECIES: BET
+  FLOW_SPECIES_LABEL: bigeye tuna
+  FLOW_ASSESSMENT_YEAR: "2026"
+  PLOT_TITLE: BET 2026 single-area report-ready figures
+  PLOT_MAX_FISHERIES: "33"
+  REPORT_QMD: assessment-report.qmd
+  REPORT_FILE_STEM: bet-2026-report
+  STEPWISE_BUILD_PAYLOAD: "true"
+  STEPWISE_SAVE_RAW_MFCL_INPUTS: "true"
+  INPUT_PAR: ""
+  PAR_SOURCE_JOB: ""
+  STEPWISE_PAR_SOURCE_DIR: ""
+  KFLOW_INPUT_JOBS: ""
+  STEPWISE_BASE_INPUT_JOB: ""
+  STEPWISE_CHECK_INPUT_JOBS: ""
+  ATTACH_CHECK_TYPES: ""
+  FRQ: bet.frq
+  OUTPUT_PAR: ""
+  STEPWISE_SAVE_FINAL_PAR: "false"
+  STEPWISE_COMMIT_FINAL_PARS: "false"
+  STEPWISE_PUSH_FINAL_PARS: "false"
+  STEPWISE_PUBLISH_REQUIRED: "false"
+  STEPWISE_SINGLE_PAR_REPORT: "true"
+
+  # true streams the full MFCL output to Kflow logs. false keeps logs quieter.
+  MFCL_LIVE_LOG: "true"
+
+  # Quick-run default for the final convergence phases. Use "-5" for stricter
+  # production reruns without editing the model folders.
+  BET_PHASE10_11_CONVERGENCE: "-3"
+
+  # Private helper packages are updated at runtime so the public image stays stable.
+  KFLOW_RUNTIME_REQUIRE_PRIVATE_PACKAGES: "true"
+  KFLOW_RUNTIME_UPDATE: never
+  TUNA_FLOW_RUNTIME_UPDATE: never
+  KFLOW_REPO_RUNTIME_UPDATE: auto
+  KFLOW_RUNTIME_PACKAGES: none
+  KFLOW_REPO_RUNTIME_PACKAGES: mfclshiny=PacificCommunity/mfclshiny@main
+  MFCLSHINY_GITHUB_REF: main
+  KFLOW_RUNTIME_GITHUB_AUTH: "true"
+  KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME: "true"
+  KFLOW_REPORT_COMMIT_GENERATED: "true"
+  KFLOW_REPORT_PUSH_GENERATED: "true"
+  KFLOW_REPORT_PUBLISH_REQUIRED: "true"
+
+# Keep artifacts compact. The runner writes only model_payload.rds, final .par,
+# and small index CSVs under outputs/.
+output_patterns:
+  - outputs/**
+
+local_apps:
+  - key: mfclshiny
+    label: MFCL Shiny
+    icon: chart-no-axes-combined
+    runner: local-docker-ssh
+    memory: 8g
+    archive_sources:
+      - outputs
+    container_port: 3838
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: "true"
+      MFCLSHINY_GITHUB_REF: main
+      MFCLSHINY_AUTO_LOAD: "true"
+      MFCLSHINY_REPORT_DPI: "96"
+      MFCLSHINY_OPTIMIZE_FIGURES: "true"
+      MFCLSHINY_PREVIEW_DPI: "48"
+      MFCLSHINY_PREVIEW_MAX_WIDTH: "980"
+      MFCLSHINY_PREVIEW_MAX_HEIGHT: "980"
+      MFCLSHINY_REPORT_CARD_LIMIT: "60"
+    command: |
+      Rscript - <<'RS'
+      Sys.setenv(
+        OMP_NUM_THREADS = "1",
+        OPENBLAS_NUM_THREADS = "1",
+        MKL_NUM_THREADS = "1",
+        VECLIB_MAXIMUM_THREADS = "1",
+        NUMEXPR_NUM_THREADS = "1",
+        MFCLSHINY_MODEL_DIR = Sys.getenv("KFLOW_LOCAL_APP_INPUT_DIR", "/kflow/inputs"),
+        MFCLSHINY_EXPORT_DIR = "/kflow/work/export",
+        R_REMOTES_NO_ERRORS_FROM_WARNINGS = "true"
+      )
+      options(
+        bitmapType = "cairo",
+        Ncpus = max(1L, parallel::detectCores() - 2L)
+      )
+
+      lib <- Sys.getenv("KFLOW_LOCAL_APP_R_LIBS", "/kflow/package-cache/R-library")
+      dir.create(lib, recursive = TRUE, showWarnings = FALSE)
+      base_libs <- setdiff(.libPaths(), normalizePath(lib, winslash = "/", mustWork = FALSE))
+      .libPaths(unique(c(lib, base_libs)))
+
+      ensure_cran_packages <- function(packages) {
+        packages <- unique(packages[nzchar(packages)])
+        missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
+        if (!length(missing)) {
+          return(invisible(TRUE))
+        }
+        repos <- getOption("repos")
+        if (is.null(repos) || identical(unname(repos[["CRAN"]]), "@CRAN@")) {
+          repos <- c(CRAN = Sys.getenv("CRAN_REPO", "https://cloud.r-project.org"))
+        }
+        message("[mfclshiny-local-app] installing missing CRAN packages: ", paste(missing, collapse = ", "))
+        utils::install.packages(
+          missing,
+          lib = lib,
+          repos = repos,
+          dependencies = c("Depends", "Imports", "LinkingTo"),
+          Ncpus = getOption("Ncpus", 1L)
+        )
+        missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
+        if (length(missing)) {
+          stop(
+            "Missing R package(s) after local-app dependency install: ",
+            paste(missing, collapse = ", "),
+            call. = FALSE
+          )
+        }
+        invisible(TRUE)
+      }
+      ensure_cran_packages(c(
+        "cowplot", "dplyr", "DT", "ggplot2", "htmltools", "jsonlite",
+        "maps", "patchwork", "plotly", "purrr", "rlang", "rpart",
+        "scales", "shiny", "shinydashboard", "shinyFiles", "shinyWidgets",
+        "stringr", "tibble", "tidyr", "viridis"
+      ))
+
+      mfclshiny_ref <- Sys.getenv("MFCLSHINY_GITHUB_REF", "main")
+      desc_field <- function(desc, name) {
+        value <- tryCatch(desc[[name]], error = function(e) "")
+        if (is.null(value) || !length(value) || is.na(value[[1L]])) "" else as.character(value[[1L]])
+      }
+      installed_desc <- tryCatch(
+        suppressWarnings(utils::packageDescription("mfclshiny")),
+        error = function(e) NULL
+      )
+      if (length(installed_desc) == 1L && is.na(installed_desc[[1L]])) {
+        installed_desc <- NULL
+      }
+      installed_sha <- desc_field(installed_desc, "RemoteSha")
+      installed_ref <- desc_field(installed_desc, "RemoteRef")
+      ref_is_sha <- grepl("^[0-9a-f]{7,40}$", mfclshiny_ref, ignore.case = TRUE)
+      token <- Sys.getenv("GITHUB_PAT", Sys.getenv("GITHUB_TOKEN", ""))
+      git <- Sys.which("git")
+      git_url <- "https://github.com/PacificCommunity/mfclshiny.git"
+      resolve_remote_sha <- function(ref) {
+        if (!nzchar(git) || !nzchar(ref) || isTRUE(ref_is_sha)) {
+          return(if (isTRUE(ref_is_sha)) ref else "")
+        }
+        askpass <- tempfile(pattern = "mfclshiny-lsremote-askpass-")
+        on.exit(unlink(askpass, recursive = TRUE, force = TRUE), add = TRUE)
+        writeLines(c(
+          "#!/bin/sh",
+          "case \"$1\" in",
+          "  *Username*) printf '%s\\n' x-access-token ;;",
+          "  *) printf '%s\\n' \"$KFLOW_GIT_ASKPASS_TOKEN\" ;;",
+          "esac"
+        ), askpass)
+        Sys.chmod(askpass, mode = "0700")
+        out <- tryCatch(
+          system2(
+            git,
+            c("ls-remote", git_url, ref, paste0("refs/heads/", ref), paste0("refs/tags/", ref)),
+            env = c(
+              paste0("GIT_ASKPASS=", askpass),
+              "GIT_TERMINAL_PROMPT=0",
+              paste0("KFLOW_GIT_ASKPASS_TOKEN=", token)
+            ),
+            stdout = TRUE,
+            stderr = FALSE
+          ),
+          error = function(e) character()
+        )
+        sha_lines <- out[grepl("^[0-9a-fA-F]{40}[[:space:]]", out)]
+        sha <- if (length(sha_lines)) sub("[[:space:]].*$", "", sha_lines[[1L]]) else ""
+        if (nzchar(sha)) sha else ""
+      }
+      desired_sha <- resolve_remote_sha(mfclshiny_ref)
+      ref_matches <- if (isTRUE(ref_is_sha)) {
+        nzchar(installed_sha) && startsWith(tolower(installed_sha), tolower(mfclshiny_ref))
+      } else {
+        identical(installed_ref, mfclshiny_ref) &&
+          nzchar(installed_sha) &&
+          nzchar(desired_sha) &&
+          startsWith(tolower(installed_sha), tolower(desired_sha))
+      }
+      if (is.null(installed_desc) || !isTRUE(ref_matches)) {
+        if (!nzchar(token)) {
+          stop("mfclshiny cache does not match MFCLSHINY_GITHUB_REF and no GitHub token was forwarded.", call. = FALSE)
+        }
+        if (!nzchar(git)) {
+          stop("git is required to install mfclshiny for the local app.", call. = FALSE)
+        }
+        source_dir <- tempfile(pattern = "mfclshiny-src-")
+        askpass <- tempfile(pattern = "mfclshiny-askpass-")
+        writeLines(c(
+          "#!/bin/sh",
+          "case \"$1\" in",
+          "  *Username*) printf '%s\\n' x-access-token ;;",
+          "  *) printf '%s\\n' \"$KFLOW_GIT_ASKPASS_TOKEN\" ;;",
+          "esac"
+        ), askpass)
+        Sys.chmod(askpass, mode = "0700")
+        run_git <- function(args) {
+          status <- system2(
+            git,
+            args,
+            env = c(
+              paste0("GIT_ASKPASS=", askpass),
+              "GIT_TERMINAL_PROMPT=0",
+              paste0("KFLOW_GIT_ASKPASS_TOKEN=", token)
+            ),
+            stdout = FALSE,
+            stderr = FALSE
+          )
+          identical(as.integer(status), 0L)
+        }
+        git_url <- "https://github.com/PacificCommunity/mfclshiny.git"
+        if (!run_git(c("clone", "--quiet", "--depth", "50", git_url, source_dir))) {
+          stop("git clone failed for PacificCommunity/mfclshiny.", call. = FALSE)
+        }
+        if (!run_git(c("-C", source_dir, "checkout", "--quiet", mfclshiny_ref))) {
+          if (!run_git(c("-C", source_dir, "fetch", "--quiet", "--depth", "1", "origin", mfclshiny_ref)) ||
+              !run_git(c("-C", source_dir, "checkout", "--quiet", "FETCH_HEAD"))) {
+            stop("git checkout failed for PacificCommunity/mfclshiny@", mfclshiny_ref, call. = FALSE)
+          }
+        }
+        install_output <- system2(
+          file.path(R.home("bin"), "R"),
+          c("CMD", "INSTALL", "-l", lib, source_dir),
+          stdout = TRUE,
+          stderr = TRUE
+        )
+        install_status <- attr(install_output, "status")
+        if (is.null(install_status)) install_status <- 0L
+        unlink(c(source_dir, askpass), recursive = TRUE, force = TRUE)
+        if (!identical(as.integer(install_status), 0L)) {
+          detail <- paste(tail(as.character(install_output), 30), collapse = "\n")
+          stop("R CMD INSTALL failed for mfclshiny\n", detail, call. = FALSE)
+        }
+        desc_path <- system.file("DESCRIPTION", package = "mfclshiny", lib.loc = lib)
+        if (nzchar(desc_path) && file.exists(desc_path)) {
+          remote <- list(
+            RemoteType = "github",
+            RemoteHost = "api.github.com",
+            RemoteUsername = "PacificCommunity",
+            RemoteRepo = "mfclshiny",
+            RemoteRef = mfclshiny_ref,
+            RemoteSha = if (nzchar(desired_sha)) desired_sha else mfclshiny_ref
+          )
+          fields <- as.list(read.dcf(desc_path)[1, ])
+          fields[names(remote)] <- remote
+          write.dcf(as.data.frame(fields, stringsAsFactors = FALSE, check.names = FALSE), desc_path)
+          meta_path <- system.file("Meta", "package.rds", package = "mfclshiny", lib.loc = lib)
+          if (file.exists(meta_path)) {
+            meta <- readRDS(meta_path)
+            meta[["DESCRIPTION"]][names(remote)] <- unlist(remote)
+            saveRDS(meta, meta_path)
+          }
+          }
+          installed_desc <- tryCatch(
+            suppressWarnings(utils::packageDescription("mfclshiny", lib.loc = lib)),
+            error = function(e) NULL
+          )
+          installed_sha <- desc_field(installed_desc, "RemoteSha")
+          installed_ref <- desc_field(installed_desc, "RemoteRef")
+          ref_matches <- if (isTRUE(ref_is_sha)) {
+            nzchar(installed_sha) && startsWith(tolower(installed_sha), tolower(mfclshiny_ref))
+          } else {
+            identical(installed_ref, mfclshiny_ref) &&
+              nzchar(installed_sha) &&
+              nzchar(desired_sha) &&
+              startsWith(tolower(installed_sha), tolower(desired_sha))
+          }
+        }
+      if (is.null(installed_desc) || !isTRUE(ref_matches)) {
+        stop("mfclshiny does not match MFCLSHINY_GITHUB_REF: ", mfclshiny_ref, call. = FALSE)
+      }
+
+      dir.create("/kflow/work/export", recursive = TRUE, showWarnings = FALSE)
+      has_model_children <- function(path) {
+        if (!dir.exists(path)) return(FALSE)
+        children <- list.dirs(path, full.names = TRUE, recursive = FALSE)
+        any(file.exists(file.path(children, "model_payload.rds")))
+      }
+      has_models_dir <- function(path) {
+        has_model_children(file.path(path, "models"))
+      }
+      output_root_score <- function(path) {
+        if (!dir.exists(path)) return("")
+        score <- 0L
+        if (has_models_dir(path)) score <- score + 100L
+        if (has_model_children(path)) score <- score + 50L
+        if (file.exists(file.path(path, "model-index.csv"))) score <- score + 25L
+        if (dir.exists(file.path(path, "region-map"))) score <- score + 25L
+        if (!score) return("")
+        sprintf("%06d:%s", score, normalizePath(path, winslash = "/", mustWork = FALSE))
+      }
+      discover_output_root <- function(...) {
+        roots <- unique(normalizePath(
+          c(...),
+          winslash = "/",
+          mustWork = FALSE
+        ))
+        roots <- roots[dir.exists(roots)]
+        candidates <- unique(unlist(lapply(roots, function(root) {
+          child_outputs <- file.path(list.dirs(root, full.names = TRUE, recursive = FALSE), "outputs")
+          c(root, file.path(root, "outputs"), file.path(root, "inputs"), child_outputs)
+        }), use.names = FALSE))
+        for (root in roots) {
+          payloads <- list.files(
+            root,
+            pattern = "^model_payload[.]rds$",
+            recursive = TRUE,
+            full.names = TRUE
+          )
+          if (length(payloads)) {
+            model_dirs <- unique(dirname(payloads))
+            models_roots <- unique(dirname(model_dirs))
+            candidates <- c(candidates, models_roots, dirname(models_roots))
+          }
+        }
+        candidates <- unique(normalizePath(candidates, winslash = "/", mustWork = FALSE))
+        scores <- vapply(candidates, output_root_score, character(1))
+        scores <- scores[nzchar(scores)]
+        if (length(scores)) {
+          return(sub("^[0-9]+:", "", sort(scores, decreasing = TRUE)[[1]]))
+        }
+        roots[[1]]
+      }
+      link_or_copy <- function(from, to) {
+        unlink(to, recursive = TRUE, force = TRUE)
+        ok <- tryCatch(file.symlink(from, to), warning = function(w) FALSE, error = function(e) FALSE)
+        if (!isTRUE(ok)) {
+          ok <- file.copy(from, dirname(to), recursive = TRUE, overwrite = TRUE, copy.date = TRUE)
+        }
+        if (!isTRUE(ok)) stop("Failed to stage local app input: ", from, call. = FALSE)
+        invisible(to)
+      }
+      stage_app_model_root <- function(output_root) {
+        staging_root <- "/kflow/work/model-root"
+        unlink(staging_root, recursive = TRUE, force = TRUE)
+        dir.create(staging_root, recursive = TRUE, showWarnings = FALSE)
+        model_source <- if (has_model_children(output_root)) output_root else file.path(output_root, "models")
+        model_dirs <- list.dirs(model_source, full.names = TRUE, recursive = FALSE)
+        model_dirs <- model_dirs[file.exists(file.path(model_dirs, "model_payload.rds"))]
+        if (!length(model_dirs)) {
+          stop("No model_payload.rds files found for local app under: ", output_root, call. = FALSE)
+        }
+        for (model_dir in model_dirs) {
+          link_or_copy(model_dir, file.path(staging_root, basename(model_dir)))
+        }
+        region_map_dir <- file.path(output_root, "region-map")
+        if (dir.exists(region_map_dir)) {
+          link_or_copy(region_map_dir, file.path(staging_root, "region-map"))
+        }
+        model_index <- file.path(output_root, "model-index.csv")
+        if (file.exists(model_index)) {
+          file.copy(model_index, file.path(staging_root, "model-index.csv"), overwrite = TRUE, copy.date = TRUE)
+        }
+        staging_root
+      }
+      output_root <- discover_output_root(
+        Sys.getenv("KFLOW_LOCAL_APP_INPUT_DIR", "/kflow/inputs"),
+        Sys.getenv("KFLOW_LOCAL_APP_OUTPUT_DIR", "/kflow/outputs")
+      )
+      payload_root <- stage_app_model_root(output_root)
+      mfclshiny::run_mfclshiny(
+        model_dir = payload_root,
+        export_dir = "/kflow/work/export",
+        report_ready_export = FALSE,
+        host = "0.0.0.0",
+        port = as.integer(Sys.getenv("PORT", "3838")),
+        launch.browser = FALSE
+      )
+      RS
+
+# Automatic dependency chain:
+#   single-area succeeds -> run ofp-sam-bet-2026-results with this job as input
+#   results succeeds  -> run the report task from downstream task config
+#
+# One-off command-line override:
+#   make kflow TRIGGER_NEXT=false STEP_SELECT=01-SingleArea
+triggers:
+  on_success:
+    - key: results-from-single-area
+      report: ofp-sam-bet-2026-results
+      input_jobs:
+        - "{{ job.job_number }}"
+      env:
+        FLOW_GROUP: "{{ job.config.FLOW_GROUP }}"
+        JOB_TITLE: BET single-area results
+        JOB_KEY: results-single-area
+        JOB_DESCRIPTION: Build report-ready figures and tables from the single-area model payload.
+        PLOT_TITLE: "{{ job.config.PLOT_TITLE }}"
+        PLOT_MAX_FISHERIES: "{{ job.config.PLOT_MAX_FISHERIES }}"
+        FLOW_SPECIES: "{{ job.config.FLOW_SPECIES }}"
+        FLOW_SPECIES_LABEL: "{{ job.config.FLOW_SPECIES_LABEL }}"
+        FLOW_ASSESSMENT_YEAR: "{{ job.config.FLOW_ASSESSMENT_YEAR }}"
+        REPORT_QMD: "{{ job.config.REPORT_QMD }}"
+        REPORT_FILE_STEM: "{{ job.config.REPORT_FILE_STEM }}"
+        KFLOW_REPORT_COMMIT_GENERATED: "{{ job.config.KFLOW_REPORT_COMMIT_GENERATED }}"
+        KFLOW_REPORT_PUSH_GENERATED: "{{ job.config.KFLOW_REPORT_PUSH_GENERATED }}"
+        KFLOW_REPORT_PUBLISH_REQUIRED: "{{ job.config.KFLOW_REPORT_PUBLISH_REQUIRED }}"
+        KFLOW_RUNTIME_REQUIRE_PRIVATE_PACKAGES: "true"
+        KFLOW_RUNTIME_UPDATE: never
+        TUNA_FLOW_RUNTIME_UPDATE: never
+        KFLOW_REPO_RUNTIME_UPDATE: auto
+        KFLOW_RUNTIME_PACKAGES: none
+        KFLOW_REPO_RUNTIME_PACKAGES: mfclshiny=PacificCommunity/mfclshiny@main
+        MFCLSHINY_GITHUB_REF: main
+        MFCLSHINY_REPORT_DPI: "180"
+        MFCLSHINY_OPTIMIZE_FIGURES: "false"
+        PLOT_OPTIMIZE_FIGURES: "true"
+        PLOT_OPTIMIZE_MODE: lossy
+        PLOT_PNGQUANT_QUALITY: "60-85"
+        PLOT_WEBP_FIGURES: "true"
+        PLOT_WEBP_QUALITY: "72"
+        PLOT_PDF_JPEG_FIGURES: "true"
+        PLOT_JPEG_QUALITY: "82"
+        PLOT_JPEG_SAMPLING_FACTOR: "4:2:0"
+        KFLOW_RUNTIME_GITHUB_AUTH: "true"
+        KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME: "true"
+      tags:
+        auto: "true"
+        stage: results
+
+# Fields exposed as optional job config in the Kflow UI.
+# Add a field here only if the user should be able to override it at launch.
+job_config:
+  optional:
+    - STEP_SELECT
+    - TRIGGER_NEXT
+    - FLOW_GROUP
+    - JOB_TITLE
+    - JOB_DESCRIPTION
+    - JOB_KEY
+    - MODEL_LABEL
+    - RUN_MODE
+    - KFLOW_JOB_MEMORY
+    - STEPWISE_BUILD_PAYLOAD
+    - STEPWISE_SAVE_RAW_MFCL_INPUTS
+    - INPUT_PAR
+    - PAR_SOURCE_JOB
+    - STEPWISE_PAR_SOURCE_DIR
+    - KFLOW_INPUT_JOBS
+    - STEPWISE_BASE_INPUT_JOB
+    - STEPWISE_CHECK_INPUT_JOBS
+    - ATTACH_CHECK_TYPES
+    - FRQ
+    - OUTPUT_PAR
+    - STEPWISE_SAVE_FINAL_PAR
+    - STEPWISE_COMMIT_FINAL_PARS
+    - STEPWISE_PUSH_FINAL_PARS
+    - STEPWISE_PUBLISH_REQUIRED
+    - STEPWISE_SINGLE_PAR_REPORT
+    - PROGRAM_PATH
+    - MFCL_LIVE_LOG
+    - BET_PHASE10_11_CONVERGENCE
+    - PLOT_TITLE
+    - PLOT_MAX_FISHERIES
+    - FLOW_SPECIES
+    - FLOW_SPECIES_LABEL
+    - FLOW_ASSESSMENT_YEAR
+    - REPORT_QMD
+    - REPORT_FILE_STEM
+    - KFLOW_REPORT_COMMIT_GENERATED
+    - KFLOW_REPORT_PUSH_GENERATED
+    - KFLOW_REPORT_PUBLISH_REQUIRED
+    - KFLOW_RUNTIME_REQUIRE_PRIVATE_PACKAGES
+    - KFLOW_RUNTIME_UPDATE
+    - TUNA_FLOW_RUNTIME_UPDATE
+    - KFLOW_REPO_RUNTIME_UPDATE
+    - KFLOW_RUNTIME_PACKAGES
+    - KFLOW_REPO_RUNTIME_PACKAGES
+    - MFCLSHINY_GITHUB_REF
+    - KFLOW_RUNTIME_GITHUB_AUTH
+    - KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME
+    - MFCLSHINY_REPORT_DPI
+    - MFCLSHINY_OPTIMIZE_FIGURES
+    - PLOT_OPTIMIZE_FIGURES
+    - PLOT_OPTIMIZE_MODE
+    - PLOT_PNGQUANT_QUALITY
+    - PLOT_WEBP_FIGURES
+    - PLOT_WEBP_QUALITY
+    - PLOT_PDF_JPEG_FIGURES
+    - PLOT_JPEG_QUALITY
+    - PLOT_JPEG_SAMPLING_FACTOR

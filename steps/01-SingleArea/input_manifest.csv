@@ -1,0 +1,9 @@
+role,file,source,source_commit,note
+start_par,00.par,provided single-area BET input bundle,,Starting par retained for the rerunnable single-area model.
+frq,bet.frq,provided single-area BET input bundle,,MFCL frequency input retained from the source bundle.
+ini,bet.ini,provided single-area BET input bundle,,Source ini retained for provenance; the current doitall starts from 00.par.
+age_length,bet.age_length,provided single-area BET input bundle,,Age-length input retained from the source bundle.
+script,doitall.sh,provided single-area BET input bundle,,Native MFCL run script ending at 09.par; adjusted to use PROGRAM_PATH and BET_PHASE10_11_CONVERGENCE for Kflow.
+support,mfcl.cfg,provided single-area BET input bundle,,Supporting model file retained from the source bundle.
+support,labels.tmp,provided single-area BET input bundle,,Supporting label file retained from the source bundle.
+support,index.txt,provided single-area BET input bundle,,Supporting index file retained from the source bundle.
