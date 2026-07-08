@@ -39,10 +39,10 @@ env:
   # these from job-config.R. When launching directly from the Kflow UI and
   # changing STEP_SELECT, update these fields too if the job list should show
   # the selected model label before the run starts.
-  JOB_TITLE: "01 Single-area"
-  JOB_DESCRIPTION: "Run the BET 2026 single-area model and save compact plot-ready payloads."
-  MODEL_LABEL: "Single-area"
-  JOB_KEY: 01-single-area
+  JOB_TITLE: "01 Single-area checkpoint"
+  JOB_DESCRIPTION: "Package the fitted BET 2026 single-area checkpoint and save compact plot-ready payloads."
+  MODEL_LABEL: "Single-area checkpoint"
+  JOB_KEY: 01-single-area-checkpoint
   FLOW_GROUP: bet-2026-single-area
   FLOW_SPECIES: BET
   FLOW_SPECIES_LABEL: bigeye tuna
@@ -53,7 +53,8 @@ env:
   REPORT_FILE_STEM: bet-2026-report
   STEPWISE_BUILD_PAYLOAD: "true"
   STEPWISE_SAVE_RAW_MFCL_INPUTS: "true"
-  INPUT_PAR: ""
+  RUN_MODE: smoke_bundle
+  INPUT_PAR: 09.par
   PAR_SOURCE_JOB: ""
   STEPWISE_PAR_SOURCE_DIR: ""
   KFLOW_INPUT_JOBS: ""
@@ -61,7 +62,7 @@ env:
   STEPWISE_CHECK_INPUT_JOBS: ""
   ATTACH_CHECK_TYPES: ""
   FRQ: bet.frq
-  OUTPUT_PAR: ""
+  OUTPUT_PAR: final.par
   STEPWISE_SAVE_FINAL_PAR: "false"
   STEPWISE_COMMIT_FINAL_PARS: "false"
   STEPWISE_PUSH_FINAL_PARS: "false"

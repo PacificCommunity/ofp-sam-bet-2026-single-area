@@ -28,7 +28,7 @@ Operational settings for the BET 2026 single-area model runner.
 
 | `step_id` | `enabled` | `major_step` | `substep` | `change_axis` | `model_label` | `job_title` | `job_key` | `run_mode` | `mfcl_program_path` | `input_par` | `frq` | `output_par` |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `01-SingleArea` | `TRUE` | 01-SingleArea | 01a | single-area BET model from curated input set | Single-area | 01 Single-area | `01-single-area` | `doitall` | blank | `blank` | `bet.frq` | `blank` |
+| `01-SingleArea` | `TRUE` | 01-SingleArea | 01a | single-area BET fitted checkpoint from curated input set | Single-area checkpoint | 01 Single-area checkpoint | `01-single-area-checkpoint` | `smoke_bundle` | blank | `09.par` | `bet.frq` | `final.par` |
 
 
 ## Folder Checks
