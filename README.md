@@ -31,7 +31,9 @@ remains available as an override.
 
 Large fitted outputs, including `69-01-01-00/`, reports, Hessian files, fit
 files, and intermediate `.par` chains between `00.par` and `09.par`, are
-intentionally not tracked here.
+intentionally not tracked here. Kflow's compact runtime artifact retains the
+small generated `indepvar.rpt`/`xinit.rpt` reports when present because native
+Jitter needs the active-parameter map; other bulky fit outputs remain omitted.
 
 ## Kflow
 
@@ -47,7 +49,7 @@ Default launch settings:
 | `OUTPUT_PAR` | `final.par` |
 | `BET_PHASE10_11_CONVERGENCE` | `-3` |
 | `PROGRAM_PATH` | `/home/mfcl/mfclo64` |
-| Runtime diagnostics | `mfclkit 0.0.0.9006` and `mfclshiny 0.0.0.9006` |
+| Runtime diagnostics | `mfclkit 0.0.0.9007` and `mfclshiny 0.0.0.9006` |
 | CPUs | `2` |
 | Memory | `8GB` |
 | Final par | `final.par` |
