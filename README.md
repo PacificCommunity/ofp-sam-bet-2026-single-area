@@ -54,8 +54,8 @@ Default launch settings:
 | Memory | `8GB` |
 | Final par | `final.par` |
 
-The pinned public diagnostic packages are downloaded without forwarding a
-GitHub credential into the model container.
+The pinned diagnostic packages are installed in the short-lived runtime library;
+Kflow forwards GitHub access only for that source-install step.
 
 The default `single_par` mode runs MFCL from `09.par` to `final.par` with one
 function-evaluation pass and report output enabled, then uses the generated

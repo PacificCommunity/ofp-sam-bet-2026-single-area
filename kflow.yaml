@@ -86,8 +86,8 @@ env:
   KFLOW_RUNTIME_PACKAGES: none
   KFLOW_REPO_RUNTIME_PACKAGES: mfclkit=PacificCommunity/ofp-sam-mfclkit@dea48f1e7dd77c14118bc67e27a3a8849f49dcee,mfclshiny=PacificCommunity/mfclshiny@be4b7aaea2540ce443000b96e374f10ecc91fccc
   MFCLSHINY_GITHUB_REF: be4b7aaea2540ce443000b96e374f10ecc91fccc
-  KFLOW_RUNTIME_GITHUB_AUTH: "false"
-  KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME: "false"
+  KFLOW_RUNTIME_GITHUB_AUTH: "true"
+  KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME: "true"
   KFLOW_REPORT_COMMIT_GENERATED: "true"
   KFLOW_REPORT_PUSH_GENERATED: "true"
   KFLOW_REPORT_PUBLISH_REQUIRED: "true"
@@ -178,9 +178,63 @@ local_apps:
       ensure_cran_packages(c(
         "cowplot", "dplyr", "DT", "ggplot2", "htmltools", "jsonlite",
         "maps", "patchwork", "plotly", "purrr", "rlang", "rpart",
+        "remotes",
         "scales", "shiny", "shinydashboard", "shinyFiles", "shinyWidgets",
         "stringr", "tibble", "tidyr", "viridis"
       ))
+
+      ensure_pinned_github_package <- function(package, repo, ref) {
+        desc_field <- function(desc, name) {
+          value <- tryCatch(desc[[name]], error = function(e) "")
+          if (is.null(value) || !length(value) || is.na(value[[1L]])) "" else as.character(value[[1L]])
+        }
+        installed_desc <- tryCatch(
+          suppressWarnings(utils::packageDescription(package, lib.loc = lib)),
+          error = function(e) NULL
+        )
+        if (length(installed_desc) == 1L && is.na(installed_desc[[1L]])) {
+          installed_desc <- NULL
+        }
+        installed_sha <- desc_field(installed_desc, "RemoteSha")
+        ref_is_sha <- grepl("^[0-9a-f]{7,40}$", ref, ignore.case = TRUE)
+        if (!isTRUE(ref_is_sha)) {
+          stop("Pinned local-app package ref must be a commit SHA: ", package, "@", ref, call. = FALSE)
+        }
+        if (!is.null(installed_desc) && nzchar(installed_sha) &&
+            startsWith(tolower(installed_sha), tolower(ref)) &&
+            requireNamespace(package, quietly = TRUE)) {
+          return(invisible(TRUE))
+        }
+        token <- Sys.getenv("GITHUB_PAT", Sys.getenv("GITHUB_TOKEN", ""))
+        if (!nzchar(token)) {
+          stop(package, " cache does not match its pinned ref and no GitHub token was forwarded.", call. = FALSE)
+        }
+        remotes::install_github(
+          repo,
+          ref = ref,
+          auth_token = token,
+          lib = lib,
+          dependencies = FALSE,
+          upgrade = "never",
+          force = TRUE,
+          quiet = TRUE
+        )
+        installed_desc <- tryCatch(
+          suppressWarnings(utils::packageDescription(package, lib.loc = lib)),
+          error = function(e) NULL
+        )
+        installed_sha <- desc_field(installed_desc, "RemoteSha")
+        if (is.null(installed_desc) || !nzchar(installed_sha) ||
+            !startsWith(tolower(installed_sha), tolower(ref))) {
+          stop(package, " does not match its pinned local-app ref: ", ref, call. = FALSE)
+        }
+        invisible(TRUE)
+      }
+      ensure_pinned_github_package(
+        "mfclkit",
+        "PacificCommunity/ofp-sam-mfclkit",
+        Sys.getenv("MFCLKIT_GITHUB_REF", "main")
+      )
 
       mfclshiny_ref <- Sys.getenv("MFCLSHINY_GITHUB_REF", "main")
       desc_field <- function(desc, name) {
