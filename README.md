@@ -49,7 +49,7 @@ Default launch settings:
 | `OUTPUT_PAR` | `final.par` |
 | `BET_PHASE10_11_CONVERGENCE` | `-3` |
 | `PROGRAM_PATH` | `/home/mfcl/mfclo64` |
-| Runtime diagnostics | `mfclkit 0.0.0.9011` and `mfclshiny 0.0.0.9011` |
+| Runtime diagnostics | `mfclkit 0.0.0.9012` and `mfclshiny 0.0.0.9012` |
 | CPUs | `2` |
 | Memory | `8GB` |
 | Final par | `final.par` |
