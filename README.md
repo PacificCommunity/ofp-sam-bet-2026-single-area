@@ -47,6 +47,7 @@ Default launch settings:
 | `OUTPUT_PAR` | `final.par` |
 | `BET_PHASE10_11_CONVERGENCE` | `-3` |
 | `PROGRAM_PATH` | `/home/mfcl/mfclo64` |
+| Runtime diagnostics | `mfclkit 0.0.0.9006` and `mfclshiny 0.0.0.9006` |
 | CPUs | `2` |
 | Memory | `8GB` |
 | Final par | `final.par` |
@@ -68,3 +69,9 @@ make kflow TRIGGER_NEXT=false
 After a successful run, compact model outputs are written under
 `outputs/models/01-SingleArea/` and can be opened with the MFCL Shiny local app
 registered in `kflow.yaml`.
+
+Diagnostic unit jobs are merged independently by diagnostic type. Each
+diagnostic merge publishes its delta directly onto the original single-area
+fit, so no separate common merge or attach job is created and concurrent
+Hessian, profile, jitter, retrospective, ASPM, and self-test updates do not
+replace one another.
