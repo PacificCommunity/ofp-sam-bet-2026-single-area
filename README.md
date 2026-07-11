@@ -49,10 +49,13 @@ Default launch settings:
 | `OUTPUT_PAR` | `final.par` |
 | `BET_PHASE10_11_CONVERGENCE` | `-3` |
 | `PROGRAM_PATH` | `/home/mfcl/mfclo64` |
-| Runtime diagnostics | `mfclkit 0.0.0.9008` and `mfclshiny 0.0.0.9006` |
+| Runtime diagnostics | `mfclkit 0.0.0.9008` and `mfclshiny 0.0.0.9007` |
 | CPUs | `2` |
 | Memory | `8GB` |
 | Final par | `final.par` |
+
+The pinned public diagnostic packages are downloaded without forwarding a
+GitHub credential into the model container.
 
 The default `single_par` mode runs MFCL from `09.par` to `final.par` with one
 function-evaluation pass and report output enabled, then uses the generated
