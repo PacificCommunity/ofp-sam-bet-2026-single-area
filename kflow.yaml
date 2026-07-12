@@ -39,22 +39,22 @@ env:
   # these from job-config.R. When launching directly from the Kflow UI and
   # changing STEP_SELECT, update these fields too if the job list should show
   # the selected model label before the run starts.
-  JOB_TITLE: "01 Single-area checkpoint"
-  JOB_DESCRIPTION: "Run the fitted BET 2026 single-area checkpoint briefly and save compact plot-ready payloads."
-  MODEL_LABEL: "Single-area checkpoint"
-  JOB_KEY: 01-single-area-checkpoint
+  JOB_TITLE: "01 Single-area BET2026 full fit"
+  JOB_DESCRIPTION: "Run the BET2026 one-region model from its MFCL 1007 inputs through the complete doitall sequence."
+  MODEL_LABEL: "Single-area BET2026 full fit"
+  JOB_KEY: 01-single-area-bet2026-full-fit
   FLOW_GROUP: bet-2026-single-area
   FLOW_SPECIES: BET
   FLOW_SPECIES_LABEL: bigeye tuna
   FLOW_ASSESSMENT_YEAR: "2026"
   PLOT_TITLE: BET 2026 single-area report-ready figures
-  PLOT_MAX_FISHERIES: "33"
+  PLOT_MAX_FISHERIES: "29"
   REPORT_QMD: assessment-report.qmd
   REPORT_FILE_STEM: bet-2026-report
   STEPWISE_BUILD_PAYLOAD: "true"
   STEPWISE_SAVE_RAW_MFCL_INPUTS: "true"
-  RUN_MODE: single_par
-  INPUT_PAR: 09.par
+  RUN_MODE: doitall
+  INPUT_PAR: ""
   PAR_SOURCE_JOB: ""
   STEPWISE_PAR_SOURCE_DIR: ""
   KFLOW_INPUT_JOBS: ""
@@ -62,21 +62,18 @@ env:
   STEPWISE_CHECK_INPUT_JOBS: ""
   ATTACH_CHECK_TYPES: ""
   FRQ: bet.frq
-  OUTPUT_PAR: final.par
+  OUTPUT_PAR: ""
   STEPWISE_SAVE_FINAL_PAR: "false"
   STEPWISE_COMMIT_FINAL_PARS: "false"
   STEPWISE_PUSH_FINAL_PARS: "false"
   STEPWISE_PUBLISH_REQUIRED: "false"
-  STEPWISE_SINGLE_PAR_REPORT: "true"
-  STEPWISE_SINGLE_PAR_ITERATIONS: "1"
-  STEPWISE_SINGLE_PAR_CONVERGENCE: "-3"
-
   # true streams the full MFCL output to Kflow logs. false keeps logs quieter.
   MFCL_LIVE_LOG: "true"
 
-  # Quick-run default for the final convergence phases. Use "-5" for stricter
-  # production reruns without editing the model folders.
-  BET_PHASE10_11_CONVERGENCE: "-3"
+  # The archived doitall's final phase uses -4. Override only for an explicit
+  # convergence sensitivity.
+  BET_FINAL_CONVERGENCE: "-4"
+  BET_PHASE10_11_CONVERGENCE: "-4"
 
   # Private helper packages are updated at runtime so the public image stays stable.
   KFLOW_RUNTIME_REQUIRE_PRIVATE_PACKAGES: "true"
@@ -84,7 +81,7 @@ env:
   TUNA_FLOW_RUNTIME_UPDATE: always
   KFLOW_REPO_RUNTIME_UPDATE: always
   KFLOW_RUNTIME_PACKAGES: none
-  KFLOW_REPO_RUNTIME_PACKAGES: mfclkit=PacificCommunity/ofp-sam-mfclkit@5306248587c21eb13348c4c1fff27b4fa87d3dd5,mfclshiny=PacificCommunity/mfclshiny@90acece572b41061cf3756bf2b2596eb2f1a43fa
+  KFLOW_REPO_RUNTIME_PACKAGES: mfclkit=PacificCommunity/ofp-sam-mfclkit@a093e40c0da6984e6f1c3d901e02846a5ee157f1,mfclshiny=PacificCommunity/mfclshiny@90acece572b41061cf3756bf2b2596eb2f1a43fa
   MFCLSHINY_GITHUB_REF: 90acece572b41061cf3756bf2b2596eb2f1a43fa
   KFLOW_RUNTIME_GITHUB_AUTH: "true"
   KFLOW_FORWARD_GITHUB_TOKEN_TO_RUNTIME: "true"
@@ -114,7 +111,7 @@ local_apps:
       NUMEXPR_NUM_THREADS: "1"
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: "true"
       KFLOW_LOCAL_APP_PACKAGE_UPDATE: "auto"
-      MFCLKIT_GITHUB_REF: 5306248587c21eb13348c4c1fff27b4fa87d3dd5
+      MFCLKIT_GITHUB_REF: a093e40c0da6984e6f1c3d901e02846a5ee157f1
       MFCLSHINY_GITHUB_REF: 90acece572b41061cf3756bf2b2596eb2f1a43fa
       MFCLSHINY_AUTO_LOAD: "true"
       MFCLSHINY_INITIAL_RENDER: "false"
@@ -603,7 +600,7 @@ triggers:
         TUNA_FLOW_RUNTIME_UPDATE: always
         KFLOW_REPO_RUNTIME_UPDATE: always
         KFLOW_RUNTIME_PACKAGES: none
-        KFLOW_REPO_RUNTIME_PACKAGES: mfclkit=PacificCommunity/ofp-sam-mfclkit@5306248587c21eb13348c4c1fff27b4fa87d3dd5,mfclshiny=PacificCommunity/mfclshiny@90acece572b41061cf3756bf2b2596eb2f1a43fa
+        KFLOW_REPO_RUNTIME_PACKAGES: mfclkit=PacificCommunity/ofp-sam-mfclkit@a093e40c0da6984e6f1c3d901e02846a5ee157f1,mfclshiny=PacificCommunity/mfclshiny@90acece572b41061cf3756bf2b2596eb2f1a43fa
         MFCLSHINY_GITHUB_REF: 90acece572b41061cf3756bf2b2596eb2f1a43fa
         MFCLSHINY_REPORT_DPI: "180"
         MFCLSHINY_OPTIMIZE_FIGURES: "false"
@@ -654,6 +651,7 @@ job_config:
     - STEPWISE_SINGLE_PAR_CONVERGENCE
     - PROGRAM_PATH
     - MFCL_LIVE_LOG
+    - BET_FINAL_CONVERGENCE
     - BET_PHASE10_11_CONVERGENCE
     - PLOT_TITLE
     - PLOT_MAX_FISHERIES

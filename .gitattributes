@@ -1,0 +1,5 @@
+# Preserve archived MFCL data byte-for-byte and keep large numeric records out
+# of textual diffs. Control files such as INI and doitall remain reviewable.
+steps/01-SingleArea/model/bet.frq binary
+steps/01-SingleArea/model/bet.age_length binary
+steps/01-SingleArea/model/bet.tag.txt binary

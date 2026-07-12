@@ -1,9 +1,8 @@
 role,file,source,source_commit,note
-start_par,00.par,provided single-area BET input bundle,,Starting par retained for the rerunnable single-area model.
-frq,bet.frq,provided single-area BET input bundle,,MFCL frequency input retained from the source bundle.
-ini,bet.ini,provided single-area BET input bundle,,Source ini retained for provenance; the current doitall starts from 00.par.
-age_length,bet.age_length,provided single-area BET input bundle,,Age-length input retained from the source bundle.
-script,doitall.sh,provided single-area BET input bundle,,Native MFCL run script ending at 09.par; adjusted to use PROGRAM_PATH and BET_PHASE10_11_CONVERGENCE for Kflow.
-support,mfcl.cfg,provided single-area BET input bundle,,Supporting model file retained from the source bundle.
-support,labels.tmp,provided single-area BET input bundle,,Supporting label file retained from the source bundle.
-support,index.txt,provided single-area BET input bundle,,Supporting index file retained from the source bundle.
+frq,bet.frq,BET2026 one-region archive,,Default 29-fishery frequency input.
+ini,bet.ini,BET2026 one-region archive,,MFCL 1007 INI with explicit LN(R0)=17 and Richards input.
+age_length,bet.age_length,BET2026 one-region archive,,Age-length input used by the model.
+tag_source,bet.tag.txt,BET2026 one-region archive,,Source tag data retained for provenance; the default FRQ activates zero tag groups.
+script,doitall.sh,BET2026 one-region archive,,Full native sequence adapted only for fail-fast execution PROGRAM_PATH and configurable final convergence; final PAR is 07.par.
+support,mfcl.cfg,BET2026 one-region archive,,MFCL memory configuration.
+support,labels.tmp,BET2026 one-region archive,,Fishery labels for the 29-fishery model.

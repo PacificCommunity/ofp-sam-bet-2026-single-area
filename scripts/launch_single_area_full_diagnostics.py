@@ -245,6 +245,7 @@ def submit_single_area_fit(
         "MODEL_LABEL": "SingleArea full-diagnostics",
         "JOB_KEY": "single-area-full-diagnostics",
         "TRIGGER_NEXT": "false",
+        "BET_FINAL_CONVERGENCE": args.phase10_11,
         "BET_PHASE10_11_CONVERGENCE": args.phase10_11,
         "KFLOW_RUNTIME_UPDATE": os.environ.get("KFLOW_RUNTIME_UPDATE", "always"),
         "TUNA_FLOW_RUNTIME_UPDATE": os.environ.get("TUNA_FLOW_RUNTIME_UPDATE", "always"),
@@ -299,8 +300,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--remote-user", default=os.environ.get("KFLOW_REMOTE_USER", DEFAULT_SUVA_USER))
     parser.add_argument("--remote-base-dir", default=os.environ.get("KFLOW_REMOTE_BASE_DIR", DEFAULT_SUVA_BASE_DIR))
     parser.add_argument("--submitter", default=os.environ.get("KFLOW_SUBMITTER", DEFAULT_SUVA_HOST))
-    parser.add_argument("--run-mode", default="single_par", help="single_par|doitall|job_par|...")
-    parser.add_argument("--phase10-11", default="-3")
+    parser.add_argument("--run-mode", default="doitall", help="doitall|single_par|job_par|...")
+    parser.add_argument("--phase10-11", default="-4", help="Legacy alias for the final doitall convergence setting.")
     parser.add_argument("--memory", default="8GB")
     parser.add_argument("--checks", nargs="+", default=DEFAULT_CHECKS)
     parser.add_argument("--check-task-prefix", default=DEFAULT_CHECK_PREFIX)

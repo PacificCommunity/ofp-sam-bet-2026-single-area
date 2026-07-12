@@ -1,13 +1,15 @@
 #!/bin/sh
 
-BET_PHASE10_11_CONVERGENCE=${BET_PHASE10_11_CONVERGENCE:--3}
+set -e
+
 MFCL=${PROGRAM_PATH:-mfclo64}
+BET_FINAL_CONVERGENCE=${BET_FINAL_CONVERGENCE:-${BET_PHASE10_11_CONVERGENCE:--4}}
 
 # -----------------------------------
 #  PHASE 0 - create initial par file
 # -----------------------------------
 
-#"${MFCL}" bet.frq bet.ini 00.par -makepar
+"${MFCL}" bet.frq bet.ini 00.par -makepar
 
 # -----------------------
 #  PHASE 1 - initial par
@@ -39,7 +41,7 @@ MFCL=${PROGRAM_PATH:-mfclo64}
   -999 13 0
 # Survey fisheries defined
 # fish flag 92 = round(mean index CV * 100), fish flag 94 = allow unequal sigma, fish flag 66 = 0
-  -33 94 1       -33 92 25   -33 66 0
+  -29 94 1       -29 92 25   -29 66 0
 # Grouping flags for survey CPUE
    -1 99 1
    -2 99 2
@@ -70,10 +72,6 @@ MFCL=${PROGRAM_PATH:-mfclo64}
   -27 99 27
   -28 99 28
   -29 99 29
-  -30 99 30
-  -31 99 31
-  -32 99 32
-  -33 99 33
 # Recruitment and initial population settings
   1 149 100        # recruitment deviation penalty
   1 400 6          # final six recruitment deviates set to zero
@@ -91,88 +89,77 @@ MFCL=${PROGRAM_PATH:-mfclo64}
   -999 50 20  # divide WF sample sizes by 20
 # For longline ALL and Index fisheries reduce sample size in half
 # so we aren't double counting sample sizes
-   -1 49 40   -1 50 40
-   -2 49 40   -2 50 40
-   -4 49 40   -4 50 40
-   -7 49 40   -7 50 40
-   -8 49 40   -8 50 40
-   -9 49 40   -9 50 40
-  -11 49 40  -11 50 40
-  -12 49 40  -12 50 40
-  -29 49 40  -29 50 40
-  -33 49 40  -33 50 40
 # Tag dynamics settings
 # Selectivity settings
   -999 3 37  # all selectivities equal for age class 37 and older
   -999 26 2  # set length-dependent selectivity option
   -999 57 3  # uses cubic spline selectivity
-  -999 61 4  # with 5 nodes for cubic spline **** CHANGED
+  -999 61 5  # with 5 nodes for cubic spline
+  -12 61 8   # this selectivity complexit for F12 and F13 is necessary to model the modal characteristics of the LF.
+  -13 61 8   # This in reality due to seasonal recruitment in the north, which a single region model cannot capture.
 # Grouping of fisheries with common selectivity
-   -1 24 1   # LL ALL 1
-   -2 24 2   # LL ALL 2
-   -3 24 3   # LL US 2
-   -4 24 4   # LL ALL 3
-   -5 24 5   # LL OS 3
-   -6 24 6   # LL OS 7
-   -7 24 7   # LL ALL 7
-   -8 24 8   # LL ALL 8
-   -9 24 9   # LL ALL 4
-  -10 24 10  # LL AU 5
-  -11 24 11  # LL ALL 5
-  -12 24 12  # LL ALL 6
-  -13 24 13  # PS ASS 3
-  -14 24 14  # PS UNS 3
-  -15 24 15  # PS ASS 4
-  -16 24 16  # PS UNS 4
-  -17 24 17  # MISC PH 7, Dom PH
-  -18 24 18  # HL PHID 7, HL ID PH
-  -19 24 19  # PS JP 1
-  -20 24 20  # PL JP 1
-  -21 24 21  # PL JP 3
-  -22 24 22  # PL JP 8
-  -23 24 23  # MISC ID 7, Dom ID VN PL 7
-  -24 24 24  # PS PHID 7
-  -25 24 25  # PS ASS 8
-  -26 24 26  # PS UNS 8
-  -27 24 27  # LL AU 9
-  -28 24 28  # PL ALL 7
-  -29 24 29  # LL ALL 9
-  -30 24 13  # PS ASS 7
-  -31 24 14  # PS UNA 7, PS PHID 7
-  -32 24 30  # MISC VN 7
-  -33 24 31  # Index fisheries
+   -1 24 1   # LL WEST 1
+   -2 24 2   # LL EAST 1
+   -3 24 3   # LL US 1
+   -4 24 4   # LL ALL 2
+   -5 24 5   # LL OS 2
+   -6 24 6   # LL ARCH 3
+   -7 24 7   # LL WEST 3
+   -8 24 8   # LL EAST 4
+   -9 24 9   # LL OS 3
+  -10 24 10  # LL ALL 5
+  -11 24 11  # LL AU 5
+  -12 24 12  # PS JP 1
+  -13 24 13  # PL JP 1
+  -14 24 14  # HL ID 2
+  -15 24 15  # HL PH 2
+  -16 24 16  # PL ALL 2
+  -17 24 17  # PS ID 2
+  -18 24 18  # PS PH 2
+  -19 24 19  # PS ASS 2
+  -20 24 20  # PS UNA 2
+  -21 24 21  # MISC ID 2
+  -22 24 22  # MISC PH 2
+  -23 24 23  # MISC VN 2
+  -24 24 24  # PL ALL WEST 3
+  -25 24 25  # PS ASS WEST 3
+  -26 24 26  # PS ASS EAST 4
+  -27 24 27  # PS UNA WEST 3
+  -28 24 28  # PS UNA EAST 4
+  -29 24 29  # INDEX
 # Non-decreasing selectivity for at least one index/longline fishery in each region
-   -6 16 1
+   -9 16 1
 # Make other longline selectivites 0 for first two age classes
+   -1 75 2
    -2 75 2
+   -3 75 2
    -4 75 2
    -5 75 2
    -6 75 2
    -7 75 2
+   -8 75 2
    -9 75 2
+  -10 75 2
   -11 75 2
   -12 75 2
+  -13 75 1
   -29 75 2
 # Make HL.PHID.7 selectivites 0 for first 5 age classes
-  -18 75 5
-  -13 16 2  -13 3 25  # FAD fisheries age-based with splines and set to zero above 25 quarters
-  -15 16 2  -15 3 25
+  -15 75 5
+  -17 16 2  -17 3 25  # FAD fisheries age-based with splines and set to zero above 25 quarters
+  -18 16 2  -18 3 25
+  -19 16 2  -19 3 25
   -25 16 2  -25 3 25
-  -30 16 2  -30 3 25
-  -14 16 2  -14 3 30  # free school fisheries
-  -16 16 2  -16 3 30
-  -26 16 2  -26 3 30
-  -31 16 2  -31 3 30
-  -24 16 2  -24 3 12
-  -19 16 2  -19 3 25  # also for PL fisheries
-  -20 16 2  -20 3 25
+  -26 16 2  -26 3 25
+  -20 16 2  -20 3 30  # free school fisheries
+  -27 16 2  -27 3 30
+  -28 16 2  -28 3 30
+  -16 16 2  -16 3 25  # also for PL fisheries
+  -24 16 2  -24 3 25
 # Forcing selectivity to zero for large fish in small MISC fisheries
-  -17 16 2  -17 3 9
   -21 16 2  -21 3 10
   -22 16 2  -22 3 7
   -23 16 2  -23 3 6
-  -28 16 2  -28 3 7
-  -32 16 2  -32 3 9
 # Turn on weighted spline for calculating maturity at age
   2 188 2
 # Set Lorenzen M
@@ -201,47 +188,61 @@ PHASE1
 PHASE2
 
 # ---------
-#  PHASE 3
+#  PHASE 3 - OPR
 # ---------
+
+"${MFCL}" bet.frq 02.par 03.par -file - <<PHASE3
+  1 155 72 1 221 72  # Sets degree for year effect
+  1 217 1            # Sets degree for season effect
+  1 216 1            # Sets degree for region effect
+  1 218 0            # Sets degree for region-season interaction effect
+  1 202 2            # Do estimate year effect for last year
+  1 210 0            # Likewise region effect
+  1 212 0            # Likewise season effect
+  1 214 0            # Likewise region-season interaction effect
+# Disable devs parameters (for neatness)
+  1 149 0
+  1 398 0
+  1 400 0
+  2 30 1
+  2 32 0
+  2 70 0
+  2 71 0
+  2 177 0
+  2 178 0
+  2 113 0
+PHASE3
 
 # ---------
 #  PHASE 4
 # ---------
 
-# ---------
-#  PHASE 5
-# ---------
-
-# ---------
-#  PHASE 6
-# ---------
-
-"${MFCL}" bet.frq 02.par 06.par -file - <<PHASE6
+"${MFCL}" bet.frq 03.par 04.par -file - <<PHASE4
   1 240 1  # fit to age-length data
   1 14 1   # estimate von Bertalanffy K
   1 12 1   # estimate mean length of age 1
   1 13 1   # estimate length of age n
   1 1 300  # function evaluations
-PHASE6
+PHASE4
 
 # ---------
-#  PHASE 7
+#  PHASE 5
 # ---------
 
-"${MFCL}" bet.frq 06.par 07.par -file - <<PHASE7
+"${MFCL}" bet.frq 04.par 05.par -file - <<PHASE5
   1 15 1   # estimate overall SD of length-at-age
   1 16 1   # estimate length dependent SD
   1 173 0  # activate independent mean lengths for first 0 age classes
   1 182 0  # penalty weight
   1 184 0  # estimate parameters
   1 1 500  # function evaluations
-PHASE7
+PHASE5
 
 # ---------
-#  PHASE 8
+#  PHASE 6
 # ---------
 
-"${MFCL}" bet.frq 07.par 08.par -file - <<PHASE8
+"${MFCL}" bet.frq 05.par 06.par -file - <<PHASE6
   2 145 1    # use SRR parameters - low penalty for deviation
   2 146 1    # estimate SRR parameters
   2 182 1    # make SRR annual rather than quarterly
@@ -262,16 +263,29 @@ PHASE7
   1 1 500    # function evaluations
   1 50 -2    # convergence criteria
   2 116 100  # increase F bound for NR to 1.0
-PHASE8
+PHASE6
 
 # ---------
-#  PHASE 9
+#  PHASE 7
 # ---------
-
-"${MFCL}" bet.frq 08.par 09.par -file - <<PHASE9
+"${MFCL}" bet.frq 06.par 07.par -file - <<PHASE7
   2 145 -1   # use SRR parameters - low penalty for deviation
   1 1 5000    # function evaluations
-  1 50 ${BET_PHASE10_11_CONVERGENCE}    # convergence criteria
+  1 50 ${BET_FINAL_CONVERGENCE}  # convergence criterion (default -4)
   2 116 300  # increase F bound for NR to 3.0
   1 246 1   # indepvar.rpt
-PHASE9
+PHASE7
+
+## ---------
+## PHASE 8
+## ---------
+##
+## Estimate seasonal selectivity for subtropical fisheries - proxy for seasonal recruitment effects.
+# mfclo64 bet.frq 07.par 08.par -file - <<PHASE8
+#   -1 74 4
+#   -2 74 4
+#   -3 74 4
+#  -10 74 4
+#  -11 74 4
+#  -13 74 4
+#PHASE8

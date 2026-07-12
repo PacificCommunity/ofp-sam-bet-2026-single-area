@@ -9,7 +9,8 @@ yml = $(shell Rscript -e 'y <- yaml::read_yaml("kflow.yaml"); v <- $(1); if (is.
 
 STEP_SELECT ?= $(call cfg,default_step_select,all)
 MFCL_LIVE_LOG ?= $(call yml,y$$env$$MFCL_LIVE_LOG,true)
-BET_PHASE10_11_CONVERGENCE ?= $(call yml,y$$env$$BET_PHASE10_11_CONVERGENCE,-3)
+BET_FINAL_CONVERGENCE ?= $(call yml,y$$env$$BET_FINAL_CONVERGENCE,-4)
+BET_PHASE10_11_CONVERGENCE ?= $(BET_FINAL_CONVERGENCE)
 OUTPUT_DIR ?= outputs
 PROGRAM_PATH ?= $(call yml,y$$env$$PROGRAM_PATH,/home/mfcl/mfclo64)
 DOCKER_IMAGE ?= $(call yml,y$$docker_image,ghcr.io/pacificcommunity/tuna-flow:v1.8)
@@ -25,7 +26,7 @@ TRIGGER_NEXT ?= $(call cfg,trigger_next,true)
 JOB_TITLE ?= $(shell STEP_SELECT='$(STEP_SELECT)' Rscript -e 'source("$(CONFIG_HELPERS_R)"); source_stepwise_config("$(CONFIG_R)"); cat(stepwise_job_title(Sys.getenv("STEP_SELECT")))')
 MODEL_LABEL ?= $(shell STEP_SELECT='$(STEP_SELECT)' Rscript -e 'source("$(CONFIG_HELPERS_R)"); source_stepwise_config("$(CONFIG_R)"); cat(stepwise_model_label(Sys.getenv("STEP_SELECT")))')
 EFFECTIVE_BET_PHASE10_11_CONVERGENCE ?= $(BET_PHASE10_11_CONVERGENCE)
-JOB_DESCRIPTION ?= Run $(MODEL_LABEL) with PHASE 10/11 convergence $(EFFECTIVE_BET_PHASE10_11_CONVERGENCE).
+JOB_DESCRIPTION ?= Run $(MODEL_LABEL) through the full archived doitall with final convergence $(BET_FINAL_CONVERGENCE).
 JOB_KEY ?= $(shell STEP_SELECT='$(STEP_SELECT)' Rscript -e 'source("$(CONFIG_HELPERS_R)"); source_stepwise_config("$(CONFIG_R)"); cat(stepwise_job_key(Sys.getenv("STEP_SELECT")))')
 MAJOR_STEP ?= $(shell STEP_SELECT='$(STEP_SELECT)' Rscript -e 'source("$(CONFIG_HELPERS_R)"); source_stepwise_config("$(CONFIG_R)"); cat(stepwise_row_value(Sys.getenv("STEP_SELECT"), "major_step"))')
 SUBSTEP ?= $(shell STEP_SELECT='$(STEP_SELECT)' Rscript -e 'source("$(CONFIG_HELPERS_R)"); source_stepwise_config("$(CONFIG_R)"); cat(stepwise_row_value(Sys.getenv("STEP_SELECT"), "substep"))')
@@ -87,7 +88,7 @@ help:
 	  'make kflow TRIGGER_NEXT=false' \
 	  '  Submit only the selected model folder, without launching plot/report afterward.' \
 	  '' \
-	  'BET_PHASE10_11_CONVERGENCE=-3 is the quick default for PHASE 10/11. Set -5 for strict runs.' \
+	  'BET_FINAL_CONVERGENCE=-4 reproduces the archived final phase; override only for a sensitivity.' \
 	  '' \
 	  'After a successful run, final .par files are written under outputs/models/<step>/final.par.' \
 	  'Use RUN_MODE=job_par with PAR_SOURCE_JOB and KFLOW_INPUT_JOBS set to the previous same-step job number.' \
@@ -131,6 +132,7 @@ local: readme
 	FRQ='$(FRQ)' \
 	OUTPUT_PAR='$(OUTPUT_PAR)' \
 	MFCL_LIVE_LOG='$(MFCL_LIVE_LOG)' \
+	BET_FINAL_CONVERGENCE='$(BET_FINAL_CONVERGENCE)' \
 	BET_PHASE10_11_CONVERGENCE='$(BET_PHASE10_11_CONVERGENCE)' \
 	OUTPUT_DIR='$(OUTPUT_DIR)' \
 	PROGRAM_PATH='$(PROGRAM_PATH)' \
@@ -179,6 +181,7 @@ docker: readme
 	  -e FRQ='$(FRQ)' \
 	  -e OUTPUT_PAR='$(OUTPUT_PAR)' \
 	  -e MFCL_LIVE_LOG='$(MFCL_LIVE_LOG)' \
+	  -e BET_FINAL_CONVERGENCE='$(BET_FINAL_CONVERGENCE)' \
 	  -e BET_PHASE10_11_CONVERGENCE='$(BET_PHASE10_11_CONVERGENCE)' \
 	  -e OUTPUT_DIR='$(OUTPUT_DIR)' \
 	  -e PROGRAM_PATH='$(PROGRAM_PATH)' \
