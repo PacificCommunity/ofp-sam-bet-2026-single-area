@@ -1,75 +1,44 @@
-# BET 2026 Single-Area
+# BET and YFT 2026 single-area models
 
-<p align="right">
-  <a href="kflow.yaml"><img src="kflow-ready.svg" alt="Kflow ready task"></a>
-</p>
+Fitted single-area MFCL snapshots for the 2026 bigeye tuna (BET) and yellowfin tuna (YFT) assessments.
 
-BET 2026 one-region MFCL model runner for Kflow and standalone use. The
-`BET2026` branch rebuilds the model from the supplied 1007 INI and the complete
-archived doitall sequence; no fitted checkpoint is carried forward from the
-older single-area bundle.
+## Models
 
-## Model
+| Species | Kflow selector | Frequency data | Fitted input |
+|---|---|---|---|
+| BET | 01-SingleArea | bet.frq | final.par |
+| YFT | 02-YFT-SingleArea | yft.frq | final.par |
 
-| Model | What it is | Source |
-| --- | --- | --- |
-| `01-SingleArea` | 29-fishery, one-region BET model; Phase 0 creates `00.par` and the fit ends at `07.par`. | BET2026 one-region archive inputs. |
+Each base job starts from the supplied fitted parameter file and performs one MFCL run to 08.par. It does not repeat the full doitall sequence. The doitall script is retained with each model for provenance.
 
-## Included Inputs
+Only model inputs are versioned here. Fit reports, Hessian files, profiles, and other generated outputs are produced by Kflow.
 
-| File | Use |
-| --- | --- |
-| `bet.frq` | MFCL frequency input. |
-| `bet.ini` | MFCL 1007 INI with `LN(R0)=17` and Richards growth input. |
-| `bet.age_length` | Age-length input used by the model. |
-| `bet.tag.txt` | Source tag data retained with the archive; the default FRQ has zero active tag groups. |
-| `doitall.sh` | Fail-fast native MFCL sequence from `-makepar` through `07.par`; commands use `PROGRAM_PATH`. |
-| `mfcl.cfg`, `labels.tmp` | Supporting model files from the same archive. |
+## Fishery labels
 
-Old PAR checkpoints and archived Hessian/report files are intentionally not
-tracked. Kflow generates a fresh PAR chain and keeps the compact payload plus
-the fit artifacts required by MFCL Shiny and downstream diagnostics.
+Each model carries its own labels.tmp and a generated fishery_map.R. All fisheries have MFCL region 1; historical area text in fishery display names is retained only as a label.
+
+Regenerate a map after changing labels:
+
+    Rscript scripts/build_fishery_map.R steps/01-SingleArea/model/labels.tmp steps/01-SingleArea/model/fishery_map.R BET
+    Rscript scripts/build_fishery_map.R steps/02-YFT-SingleArea/model/labels.tmp steps/02-YFT-SingleArea/model/fishery_map.R YFT
 
 ## Kflow
 
-The Kflow task is `ofp-sam-bet-2026-single-area`.
+Task: ofp-sam-bet-yft-2026-single-area
 
-Default launch settings:
+The launcher submits the BET and YFT base jobs independently. Each base job receives:
 
-| Setting | Value |
-| --- | --- |
-| `STEP_SELECT` | `all` |
-| `RUN_MODE` | `doitall` |
-| `INPUT_PAR` | empty; generated from the 1007 INI |
-| Expected final PAR | `07.par` |
-| `BET_FINAL_CONVERGENCE` | `-4` |
-| `PROGRAM_PATH` | `/home/mfcl/mfclo64` |
-| Runtime diagnostics | `mfclkit 0.0.0.9017` and `mfclshiny 0.0.0.9015` |
-| CPUs | `2` |
-| Memory | `8GB` |
-| Fisheries | `29` |
+- Hessian: 5 partitions
+- Profile: 2 chains
+- Jitter: 30 seeds, CV 0.1
+- Retrospective: 6 peels
+- ASPM: 1 run
 
-The pinned diagnostic packages are installed in the short-lived runtime library;
-Kflow forwards GitHub access only for that source-install step.
+Self-test is not submitted.
 
-The default run creates `00.par` from `bet.frq` and `bet.ini`, executes every
-active phase in `doitall.sh`, and treats `07.par` as the final fit. The final
-criterion defaults to the archive setting `-4`; override
-`BET_FINAL_CONVERGENCE` only for an explicit convergence sensitivity.
+    python3 scripts/register_kflow_task.py \
+      --task-name ofp-sam-bet-yft-2026-single-area \
+      --repo-full-name PacificCommunity/ofp-sam-bet-yft-2026-single-area \
+      --branch BET-YFT-2026
 
-Useful commands:
-
-```sh
-make list
-make kflow TRIGGER_NEXT=false
-```
-
-After a successful run, compact model outputs are written under
-`outputs/models/01-SingleArea/` and can be opened with the MFCL Shiny local app
-registered in `kflow.yaml`.
-
-Diagnostic unit jobs are merged independently by diagnostic type. Each
-diagnostic merge publishes its delta directly onto the original single-area
-fit, so no separate common merge or attach job is created and concurrent
-Hessian, profile, jitter, retrospective, ASPM, and self-test updates do not
-replace one another.
+    python3 scripts/launch_bet_yft_single_area.py

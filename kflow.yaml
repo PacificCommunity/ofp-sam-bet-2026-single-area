@@ -5,9 +5,9 @@
 # saved outputs, and automatic follow-up tasks.
 
 # Stable task id shown in Kflow and used by the API:
-#   /api/job/ofp-sam-bet-2026-single-area
-name: ofp-sam-bet-2026-single-area
-description: Run the BET 2026 single-area MFCL model folder.
+#   /api/job/ofp-sam-bet-yft-2026-single-area
+name: ofp-sam-bet-yft-2026-single-area
+description: Run the fitted BET and YFT 2026 single-area MFCL models.
 
 # Command executed inside the Docker container after checkout.
 command: bash run.sh
@@ -39,22 +39,22 @@ env:
   # these from job-config.R. When launching directly from the Kflow UI and
   # changing STEP_SELECT, update these fields too if the job list should show
   # the selected model label before the run starts.
-  JOB_TITLE: "01 Single-area BET2026 full fit"
-  JOB_DESCRIPTION: "Run the BET2026 one-region model from its MFCL 1007 inputs through the complete doitall sequence."
-  MODEL_LABEL: "Single-area BET2026 full fit"
+  JOB_TITLE: "BET and YFT 2026 single-area fitted models"
+  JOB_DESCRIPTION: "Run fitted BET and YFT single-area parameter snapshots once and build model outputs."
+  MODEL_LABEL: "BET and YFT 2026 single-area fitted models"
   JOB_KEY: 01-single-area-bet2026-full-fit
-  FLOW_GROUP: bet-2026-single-area
+  FLOW_GROUP: bet-yft-2026-single-area
   FLOW_SPECIES: BET
   FLOW_SPECIES_LABEL: bigeye tuna
   FLOW_ASSESSMENT_YEAR: "2026"
   PLOT_TITLE: BET 2026 single-area report-ready figures
   PLOT_MAX_FISHERIES: "29"
   REPORT_QMD: assessment-report.qmd
-  REPORT_FILE_STEM: bet-2026-report
+  REPORT_FILE_STEM: bet-yft-2026-single-area
   STEPWISE_BUILD_PAYLOAD: "true"
   STEPWISE_SAVE_RAW_MFCL_INPUTS: "true"
-  RUN_MODE: doitall
-  INPUT_PAR: ""
+  RUN_MODE: single_par
+  INPUT_PAR: "final.par"
   PAR_SOURCE_JOB: ""
   STEPWISE_PAR_SOURCE_DIR: ""
   KFLOW_INPUT_JOBS: ""

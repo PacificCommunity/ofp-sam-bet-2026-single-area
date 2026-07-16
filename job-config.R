@@ -1,29 +1,39 @@
-# Edit this file to choose the default run and model metadata.
-# The runner still uses the stepwise config object names, but this repo has one
-# single-area model folder.
+# Default Kflow runs for the fitted BET and YFT 2026 single-area models.
 
 stepwise_run <- list(
   default_step_select = "all",
-  flow_group = "bet-2026-single-area",
-  trigger_next = TRUE
+  flow_group = "bet-yft-2026-single-area",
+  trigger_next = FALSE
 )
 
 stepwise_models <- data.frame(
-  step_id = "01-SingleArea",
-  enabled = TRUE,
-  major_step = "01-SingleArea",
-  substep = "01a",
-  change_axis = "single-area BET full fit from the 1007 archive inputs",
-  model_label = "Single-area BET2026 full fit",
-  job_title = "01 Single-area BET2026 full fit",
-  job_key = "01-single-area-bet2026-full-fit",
-  run_mode = "doitall",
-  region_count = 1L,
-  kflow_memory = "8GB",
-  mfcl_program_path = "",
-  input_par = "",
-  frq = "bet.frq",
-  output_par = "",
-  expected_final_par = "07.par",
+  step_id = c("01-SingleArea", "02-YFT-SingleArea"),
+  enabled = c(TRUE, TRUE),
+  major_step = c("01-SingleArea", "02-YFT-SingleArea"),
+  substep = c("01a", "02a"),
+  change_axis = c(
+    "BET fitted single-area snapshot",
+    "YFT fitted single-area snapshot"
+  ),
+  model_label = c(
+    "BET 2026 single-area fitted model",
+    "YFT 2026 single-area fitted model"
+  ),
+  job_title = c(
+    "BET 2026 single-area fitted final-PAR run",
+    "YFT 2026 single-area fitted final-PAR run"
+  ),
+  job_key = c(
+    "bet-2026-single-area-final-par",
+    "yft-2026-single-area-final-par"
+  ),
+  run_mode = c("single_par", "single_par"),
+  region_count = c(1L, 1L),
+  kflow_memory = c("8GB", "8GB"),
+  mfcl_program_path = c("", ""),
+  input_par = c("final.par", "final.par"),
+  frq = c("bet.frq", "yft.frq"),
+  output_par = c("08.par", "08.par"),
+  expected_final_par = c("", ""),
   stringsAsFactors = FALSE
 )

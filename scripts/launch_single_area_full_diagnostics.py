@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Submit a single-area base run with full diagnostics to Kflow (suva target).
+"""Submit a single-area base run with full diagnostics to Kflow (Noumea target).
 
 Flow:
   1) Submit the single-area base model job (01-SingleArea by default).
@@ -35,18 +35,18 @@ CHECKS_ROOT = ROOT.parent / "ofp-sam-bet-2026-checks"
 CHECKS_LAUNCH = CHECKS_ROOT / "scripts" / "submit_kflow_checks.py"
 DEFAULT_MODEL = "01-SingleArea"
 DEFAULT_CHECK_PREFIX = "ofp-sam-bet-2026-check"
-DEFAULT_TASK = "ofp-sam-bet-2026-single-area"
-DEFAULT_FLOW_GROUP = "bet-2026-single-area"
-DEFAULT_CHECKS = ["hessian", "jitter", "selftest", "profile", "aspm", "retro"]
-DEFAULT_HESSIAN_NSPLIT = "10"
-DEFAULT_JITTER_SEEDS = " ".join(str(i) for i in range(1, 11))
+DEFAULT_TASK = "ofp-sam-bet-yft-2026-single-area"
+DEFAULT_FLOW_GROUP = "bet-yft-2026-single-area"
+DEFAULT_CHECKS = ["hessian", "profile", "jitter", "retro", "aspm"]
+DEFAULT_HESSIAN_NSPLIT = "5"
+DEFAULT_JITTER_SEEDS = " ".join(str(value) for value in range(1, 31))
 DEFAULT_JITTER_CV = "0.1"
 DEFAULT_SELFTEST_REPS = " ".join(str(i) for i in range(1, 11))
 DEFAULT_RETRO_PEELS = " ".join(str(i) for i in range(1, 7))
-DEFAULT_SUVA_HOST = "suvofpsubmit.corp.spc.int"
+DEFAULT_SUVA_HOST = "nouofpsubmit.corp.spc.int"
 DEFAULT_SUVA_USER = "kyuhank"
 DEFAULT_SUVA_BASE_DIR = "/home/kyuhank/KflowOutput"
-DEFAULT_REF = "main"
+DEFAULT_REF = "BET-YFT-2026"
 
 
 def kflow_yaml_value(key: str, default: str = "") -> str:
@@ -235,15 +235,15 @@ def submit_single_area_fit(
     branch: str,
     args: argparse.Namespace,
 ) -> str:
-    model_source = "PacificCommunity/ofp-sam-bet-2026-single-area"
+    model_source = "PacificCommunity/ofp-sam-bet-yft-2026-single-area"
     env = {
         "STEP_SELECT": args.model_selector,
         "RUN_MODE": args.run_mode,
         "FLOW_GROUP": args.flow_group,
         "JOB_TITLE": f"01-SingleArea full-diagnostics rerun ({args.phase10_11})",
-        "JOB_DESCRIPTION": "Re-run single-area fit for full diagnostics chain.",
-        "MODEL_LABEL": "SingleArea full-diagnostics",
-        "JOB_KEY": "single-area-full-diagnostics",
+        "JOB_DESCRIPTION": "Run the fitted single-area PAR once, then attach the requested diagnostics.",
+        "MODEL_LABEL": f"{args.model_selector} fitted model",
+        "JOB_KEY": f"{args.model_selector.lower()}-fitted-final-par",
         "TRIGGER_NEXT": "false",
         "BET_FINAL_CONVERGENCE": args.phase10_11,
         "BET_PHASE10_11_CONVERGENCE": args.phase10_11,
@@ -310,7 +310,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jitter-cv", default=DEFAULT_JITTER_CV)
     parser.add_argument("--selftest-reps", default=DEFAULT_SELFTEST_REPS)
     parser.add_argument("--retro-peels", default=DEFAULT_RETRO_PEELS)
-    parser.add_argument("--model-source-repo", default="PacificCommunity/ofp-sam-bet-2026-single-area")
+    parser.add_argument("--model-source-repo", default="PacificCommunity/ofp-sam-bet-yft-2026-single-area")
     parser.add_argument("--model-source-ref", default="")
     parser.add_argument("--model-source-path", default="steps/01-SingleArea")
     parser.add_argument("--check-profile-values", default="")
