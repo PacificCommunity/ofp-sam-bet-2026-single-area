@@ -17,8 +17,8 @@ BRANCH = "BET-YFT-2026"
 FLOW_GROUP = "bet-yft-2026-single-area"
 NOUMEA_HOST = "nouofpsubmit.corp.spc.int"
 MODELS = (
-    ("BET", "01-SingleArea", "steps/01-SingleArea/model"),
-    ("YFT", "02-YFT-SingleArea", "steps/02-YFT-SingleArea/model"),
+    ("BET", "BET", "steps/BET/model"),
+    ("YFT", "YFT", "steps/YFT/model"),
 )
 
 

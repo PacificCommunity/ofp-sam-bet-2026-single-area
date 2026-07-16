@@ -6,8 +6,8 @@ Fitted single-area MFCL snapshots for the 2026 bigeye tuna (BET) and yellowfin t
 
 | Species | Kflow selector | Frequency data | Fitted input |
 |---|---|---|---|
-| BET | 01-SingleArea | bet.frq | final.par |
-| YFT | 02-YFT-SingleArea | yft.frq | final.par |
+| BET | BET | bet.frq | final.par |
+| YFT | YFT | yft.frq | final.par |
 
 Each base job starts from the supplied fitted parameter file and performs one MFCL run to 08.par. It does not repeat the full doitall sequence. The doitall script is retained with each model for provenance.
 
@@ -19,8 +19,8 @@ Each model carries its own labels.tmp and a generated fishery_map.R. All fisheri
 
 Regenerate a map after changing labels:
 
-    Rscript scripts/build_fishery_map.R steps/01-SingleArea/model/labels.tmp steps/01-SingleArea/model/fishery_map.R BET
-    Rscript scripts/build_fishery_map.R steps/02-YFT-SingleArea/model/labels.tmp steps/02-YFT-SingleArea/model/fishery_map.R YFT
+    Rscript scripts/build_fishery_map.R steps/BET/model/labels.tmp steps/BET/model/fishery_map.R BET
+    Rscript scripts/build_fishery_map.R steps/YFT/model/labels.tmp steps/YFT/model/fishery_map.R YFT
 
 ## Kflow
 

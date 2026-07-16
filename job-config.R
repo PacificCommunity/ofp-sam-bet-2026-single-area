@@ -7,10 +7,10 @@ stepwise_run <- list(
 )
 
 stepwise_models <- data.frame(
-  step_id = c("01-SingleArea", "02-YFT-SingleArea"),
+  step_id = c("BET", "YFT"),
   enabled = c(TRUE, TRUE),
-  major_step = c("01-SingleArea", "02-YFT-SingleArea"),
-  substep = c("01a", "02a"),
+  major_step = c("BET", "YFT"),
+  substep = c("BET", "YFT"),
   change_axis = c(
     "BET fitted single-area snapshot",
     "YFT fitted single-area snapshot"

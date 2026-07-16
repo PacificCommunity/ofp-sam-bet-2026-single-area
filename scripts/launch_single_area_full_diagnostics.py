@@ -2,7 +2,7 @@
 """Submit a single-area base run with full diagnostics to Kflow (Noumea target).
 
 Flow:
-  1) Submit the single-area base model job (01-SingleArea by default).
+  1) Submit the single-area base model job (BET by default).
   2) Submit diagnostics against that job:
      - hessian (10-way split)
      - jitter (10 seeds; CV 0.1 by default)
@@ -33,7 +33,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 CHECKS_ROOT = ROOT.parent / "ofp-sam-bet-2026-checks"
 CHECKS_LAUNCH = CHECKS_ROOT / "scripts" / "submit_kflow_checks.py"
-DEFAULT_MODEL = "01-SingleArea"
+DEFAULT_MODEL = "BET"
 DEFAULT_CHECK_PREFIX = "ofp-sam-bet-2026-check"
 DEFAULT_TASK = "ofp-sam-bet-yft-2026-single-area"
 DEFAULT_FLOW_GROUP = "bet-yft-2026-single-area"
@@ -240,7 +240,7 @@ def submit_single_area_fit(
         "STEP_SELECT": args.model_selector,
         "RUN_MODE": args.run_mode,
         "FLOW_GROUP": args.flow_group,
-        "JOB_TITLE": f"01-SingleArea full-diagnostics rerun ({args.phase10_11})",
+        "JOB_TITLE": f"BET full-diagnostics rerun ({args.phase10_11})",
         "JOB_DESCRIPTION": "Run the fitted single-area PAR once, then attach the requested diagnostics.",
         "MODEL_LABEL": f"{args.model_selector} fitted model",
         "JOB_KEY": f"{args.model_selector.lower()}-fitted-final-par",
@@ -312,7 +312,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retro-peels", default=DEFAULT_RETRO_PEELS)
     parser.add_argument("--model-source-repo", default="PacificCommunity/ofp-sam-bet-yft-2026-single-area")
     parser.add_argument("--model-source-ref", default="")
-    parser.add_argument("--model-source-path", default="steps/01-SingleArea")
+    parser.add_argument("--model-source-path", default="steps/BET")
     parser.add_argument("--check-profile-values", default="")
     parser.add_argument("--check-profile-preset", default="")
     parser.add_argument("--check-profile-center", default="")
