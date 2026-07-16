@@ -11,7 +11,7 @@ Fitted single-area MFCL snapshots for the 2026 bigeye tuna (BET) and yellowfin t
 
 Each base job starts from the supplied fitted parameter file and performs one MFCL run to 08.par. It does not repeat the full doitall sequence.
 
-BET jitter and retrospective diagnostics use the model-specific doitall sequence. They generate a fresh `00.par` from `bet.frq` and `bet.ini`, then run the complete phase chain. Jitter applies changes only as parameters become active; if a fitted `indepvar.rpt` is not retained, mfclkit reconstructs the active mask from the fitted PAR with a no-minimisation MFCL report probe. The supplied YFT snapshot has no provenance-matched INI, so fresh-makepar YFT jitter and retrospective runs are intentionally not submitted.
+BET and YFT jitter and retrospective diagnostics use their model-specific doitall sequences. Each sequence generates a fresh `00.par` from the species frequency and initial-model files, then runs the complete phase chain. Jitter changes parameters only as they become active; if a fitted `indepvar.rpt` is not retained, mfclkit reconstructs the active mask from the fitted PAR with a no-minimisation MFCL report probe.
 
 Only model inputs are versioned here. Fit reports, Hessian files, profiles, and other generated outputs are produced by Kflow.
 
