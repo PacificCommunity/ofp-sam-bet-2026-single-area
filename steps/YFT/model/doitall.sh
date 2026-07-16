@@ -1,11 +1,10 @@
 #!/bin/sh
-set -eu
 
 # -----------------------------------
 #  PHASE 0 - create initial par file
 # -----------------------------------
 
-mfclo64 yft.frq yft.ini 00.par -makepar
+#mfclo64 yft.frq bet.ini 00.par -makepar
 
 # -----------------------
 #  PHASE 1 - initial par
