@@ -146,8 +146,14 @@ def run_checks(
             "HESSIAN_NSPLIT": args.hessian_nsplit,
             "JITTER_SEEDS": args.jitter_seeds,
             "JITTER_CV": args.jitter_cv,
+            "JITTER_METHOD": os.environ.get("JITTER_METHOD", "fitted"),
+            "JITTER_USE_DOITALL": os.environ.get("JITTER_USE_DOITALL", "false"),
             "SELFTEST_REPS": args.selftest_reps,
             "RETRO_PEELS": args.retro_peels,
+            "RETRO_USE_DOITALL": os.environ.get("RETRO_USE_DOITALL", "true"),
+            "RETRO_START_STRATEGY": os.environ.get(
+                "RETRO_START_STRATEGY", "fitted_warm_start"
+            ),
             "FLOW_GROUP": args.flow_group,
             "MODEL_SOURCE_REPO": args.model_source_repo,
             "MODEL_SOURCE_REF": args.model_source_ref,
@@ -298,6 +304,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task", default=DEFAULT_TASK)
     parser.add_argument("--model-selector", default=DEFAULT_MODEL)
     parser.add_argument("--frq", default="")
+    parser.add_argument(
+        "--input-job",
+        default="",
+        help="Reuse a completed fitted base job instead of submitting another base fit.",
+    )
     parser.add_argument("--branch", default="")
     parser.add_argument("--flow-group", default=DEFAULT_FLOW_GROUP)
     parser.add_argument("--remote-host", default=os.environ.get("KFLOW_REMOTE_HOST", DEFAULT_SUVA_HOST))
@@ -355,7 +366,11 @@ def main() -> int:
         },
     }
 
-    fit_job = submit_single_area_fit(base_url, token, args.branch, args)
+    fit_job = args.input_job.strip().lstrip("#")
+    if fit_job:
+        print(f"reusing completed fit job: {fit_job}")
+    else:
+        fit_job = submit_single_area_fit(base_url, token, args.branch, args)
     manifest["fit_job"] = fit_job
 
     run_checks(
