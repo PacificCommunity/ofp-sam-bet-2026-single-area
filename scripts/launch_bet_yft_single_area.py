@@ -17,8 +17,8 @@ BRANCH = "BET-YFT-2026"
 FLOW_GROUP = "bet-yft-2026-single-area"
 NOUMEA_HOST = "nouofpsubmit.corp.spc.int"
 MODELS = (
-    ("BET", "BET", "steps/BET/model"),
-    ("YFT", "YFT", "steps/YFT/model"),
+    ("BET", "BET", "steps/BET/model", "bet.frq"),
+    ("YFT", "YFT", "steps/YFT/model", "yft.frq"),
 )
 
 
@@ -30,7 +30,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    for species, selector, source_path in MODELS:
+    for species, selector, source_path, frq in MODELS:
         command = [
             sys.executable,
             str(BASE_LAUNCHER),
@@ -44,6 +44,7 @@ def main() -> int:
             "--remote-base-dir", "/home/kyuhank/KflowOutput",
             "--submitter", "noumea",
             "--run-mode", "single_par",
+            "--frq", frq,
             "--memory", "8GB",
             "--checks", "hessian", "profile", "jitter", "retro", "aspm",
             "--hessian-nsplit", "5",

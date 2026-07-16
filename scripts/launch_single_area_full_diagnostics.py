@@ -240,7 +240,7 @@ def submit_single_area_fit(
         "STEP_SELECT": args.model_selector,
         "RUN_MODE": args.run_mode,
         "FLOW_GROUP": args.flow_group,
-        "JOB_TITLE": f"BET full-diagnostics rerun ({args.phase10_11})",
+        "JOB_TITLE": f"{args.model_selector} full-diagnostics rerun ({args.phase10_11})",
         "JOB_DESCRIPTION": "Run the fitted single-area PAR once, then attach the requested diagnostics.",
         "MODEL_LABEL": f"{args.model_selector} fitted model",
         "JOB_KEY": f"{args.model_selector.lower()}-fitted-final-par",
@@ -258,6 +258,8 @@ def submit_single_area_fit(
         "STEPWISE_PUBLISH_REQUIRED": "false",
         "MFCL_LIVE_LOG": os.environ.get("MFCL_LIVE_LOG", "true"),
     }
+    if args.frq:
+        env["FRQ"] = args.frq
     payload: dict[str, Any] = {
         "repo": model_source,
         "branch": branch,
@@ -295,6 +297,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--kflow-url", default=os.environ.get("KFLOW_URL", "http://127.0.0.1:8089"))
     parser.add_argument("--task", default=DEFAULT_TASK)
     parser.add_argument("--model-selector", default=DEFAULT_MODEL)
+    parser.add_argument("--frq", default="")
     parser.add_argument("--branch", default="")
     parser.add_argument("--flow-group", default=DEFAULT_FLOW_GROUP)
     parser.add_argument("--remote-host", default=os.environ.get("KFLOW_REMOTE_HOST", DEFAULT_SUVA_HOST))
