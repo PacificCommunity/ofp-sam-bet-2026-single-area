@@ -146,13 +146,13 @@ def run_checks(
             "HESSIAN_NSPLIT": args.hessian_nsplit,
             "JITTER_SEEDS": args.jitter_seeds,
             "JITTER_CV": args.jitter_cv,
-            "JITTER_METHOD": os.environ.get("JITTER_METHOD", "fitted"),
-            "JITTER_USE_DOITALL": os.environ.get("JITTER_USE_DOITALL", "false"),
+            "JITTER_METHOD": os.environ.get("JITTER_METHOD", "phase1_doitall"),
+            "JITTER_USE_DOITALL": os.environ.get("JITTER_USE_DOITALL", "true"),
             "SELFTEST_REPS": args.selftest_reps,
             "RETRO_PEELS": args.retro_peels,
             "RETRO_USE_DOITALL": os.environ.get("RETRO_USE_DOITALL", "true"),
             "RETRO_START_STRATEGY": os.environ.get(
-                "RETRO_START_STRATEGY", "fitted_warm_start"
+                "RETRO_START_STRATEGY", "auto"
             ),
             "FLOW_GROUP": args.flow_group,
             "MODEL_SOURCE_REPO": args.model_source_repo,
