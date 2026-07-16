@@ -270,6 +270,7 @@ def submit_single_area_fit(
         },
         "triggers": {},
         "memory": args.memory,
+            "disk": "10GB",
     }
     if args.remote_host:
         payload["remote_host"] = args.remote_host
